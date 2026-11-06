@@ -164,7 +164,7 @@ export interface LearningMemory { weakSkillIds: string[]; recurringMisconception
 export function buildMemory(input: { profile: Profile; mastery: MasteryRecord[]; attempts: ScenarioAttempt[]; kcResults: KnowledgeCheckResult[] }): LearningMemory;
 // orderbook-exercises.ts
 export function listOrderBookExercises(): OrderBookExercise[];
-export function gradeOrderBookExercise(exercise: OrderBookExercise, books: Record<string, OrderBookSnapshot>, answers: Record<string, string | number>): OrderBookExerciseSubmitResponse["results"] & { score?: never } | { score: number; results: OrderBookExerciseSubmitResponse["results"] };
+export function gradeOrderBookExercise(exercise: OrderBookExercise, books: Record<string, OrderBookSnapshot>, answers: Record<string, string | number>): { score: number; results: OrderBookExerciseSubmitResponse["results"] };
 // lib/ai/coach.ts
 export async function startCoachSession(input: { userId: string; skillId: string; memory: LearningMemory; evidence: EvidencePack }): Promise<CoachSession>;
 export async function coachRespond(session: CoachSession, learnerMessage: string, ctx: { memory: LearningMemory; evidence: EvidencePack }): Promise<CoachSession>;
