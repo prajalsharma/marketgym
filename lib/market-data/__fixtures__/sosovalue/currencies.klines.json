@@ -1,0 +1,18 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/1.-currency-and-pairs/klines",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/currencies/{currency_id}/klines?interval=1d",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "code": 0,
+  "message": "success",
+  "data": [
+      {
+          "timestamp": 1710000000000,
+          "open": 123,
+          "high": 130,
+          "low": 120,
+          "close": 125,
+          "volume": 100000
+      }
+  ]
+}

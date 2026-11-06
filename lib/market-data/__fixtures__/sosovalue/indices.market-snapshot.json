@@ -1,0 +1,17 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/3.-sosovalue-index/market-snapshot",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/indices/{index_ticker}/market-snapshot",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "code": 0,
+  "message": "success",
+  "data": {
+      "price": 20.93,
+      "change_pct_24h": -0.0016,
+      "roi_7d": 0.0056,
+      "roi_1m": 0.062,
+      "roi_3m": 0.275,
+      "roi_1y": 0.15,
+      "ytd": -0.243
+  }
+}

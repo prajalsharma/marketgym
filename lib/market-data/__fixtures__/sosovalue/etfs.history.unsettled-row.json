@@ -1,0 +1,29 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/2.-etf/history",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/etfs/{ticker}/history (T+1 unsettled latest row example)",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "code": 0,
+  "message": "success",
+  "data": [
+      {
+          "date": "2026-08-12",
+          "ticker": "IBIT",
+          "net_inflow": null,
+          "cum_inflow": null,
+          "net_assets": null,
+          "currency_share": null,
+          "prem_dsc": null,
+          "value_traded": 910925300,
+          "volume": "910925300"
+      },
+      {
+          "date": "2026-08-11",
+          "ticker": "IBIT",
+          "net_inflow": 50195600,
+          "cum_inflow": 61171454223.66,
+          "net_assets": 47337319120,
+          "...": "..."
+      }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/10.-market-overview/overview",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/market/overview",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "code": 0,
+  "message": "success",
+  "data": {
+      "total_market_cap": "2280614829402.85",
+      "total_market_cap_change_pct": "0.6",
+      "total_volume_24h": "40122576829.22",
+      "eth_gas_gwei": "0.126601389",
+      "btc_gas_sat_vb": "6",
+      "as_of": 1785911722870
+  }
+}

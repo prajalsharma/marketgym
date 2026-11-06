@@ -1,0 +1,69 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/6.-feeds/news",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/news",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "_edits": [
+    "replaced \"[...]\" placeholder in quote_info.media_info with [] (not valid JSON)"
+  ],
+  "code": 0,
+  "message": "success",
+  "data": {
+      "page": 1,
+      "page_size": 20,
+      "total": 335,
+      "list": [
+          {
+              "id": "news1",
+              "source_link": "https://sosovalue.xyz/research/1762712251829850112",
+              "original_link": "https://sosovalue.xyz/research/1762712251829850112",
+              "release_time": 1677151845000,
+              "title": "The Rise and Fall of the Roman Empire",
+              "content": "<p>HTML formatted content...</p>",
+              "author": "Author Name",
+              "author_description": "Crypto analyst & researcher",
+              "author_avatar_url": "https://...",
+              "impression_count": 432,
+              "like_count": 6,
+              "reply_count": 0,
+              "retweet_count": 3,
+              "category": 1,
+              "feature_image": "https://...",
+              "nick_name": "Shirtum ®",
+              "is_blue_verified": 1,
+              "verified_type": "Business",
+              "matched_currencies": [
+                  {
+                      "id": "1673723677362319866",
+                      "full_name": "BITCOIN",
+                      "name": "BTC"
+                  }
+              ],
+              "tags": ["ETF", "DO KWON", "TERRAFORM LABS", "SEC"],
+              "media_info": [
+                  {
+                      "soso_url": "https://static.sosovalue.com/media/example.jpg",
+                      "original_url": "",
+                      "short_url": "https://t.co/example",
+                      "type": "photo"
+                  }
+              ],
+              "quote_info": {
+                  "content": "Quoted tweet content",
+                  "impression_count": 903,
+                  "like_count": 18,
+                  "reply_count": 6,
+                  "retweet_count": 3,
+                  "created_at": 1724687710000,
+                  "media_info": [],
+                  "original_url": "https://x.com/user/status/1828098871874007446",
+                  "author_avatar_url": "https://...",
+                  "author": "Shirtum",
+                  "nick_name": "Shirtum ®",
+                  "is_blue_verified": 1,
+                  "verified_type": "Business"
+              }
+          }
+      ]
+  }
+}

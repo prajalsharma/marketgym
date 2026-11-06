@@ -1,0 +1,20 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/2.-etf/list",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/etfs?symbol=BTC&country_code=US",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "code": 0,
+  "message": "success",
+  "data": [
+      {
+          "ticker": "IBIT",
+          "name": "iShares Bitcoin Trust",
+          "exchange": "NASDAQ"
+      },
+      {
+          "ticker": "FBTC",
+          "name": "Fidelity Wise Origin Bitcoin Fund",
+          "exchange": "CBOE"
+      }
+  ]
+}

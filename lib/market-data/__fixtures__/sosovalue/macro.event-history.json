@@ -1,0 +1,22 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/8.-macro/event-history",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/macro/events/{event}/history",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "code": 0,
+  "message": "success",
+  "data": [
+      {
+          "date": "2026-07-14",
+          "actual": "3.5%",
+          "forecast": "3.8%",
+          "previous": "4.2%"
+      },
+      {
+          "date": "2026-08-05",
+          "actual": "",
+          "forecast": "53.6",
+          "previous": "51.2"
+      }
+  ]
+}

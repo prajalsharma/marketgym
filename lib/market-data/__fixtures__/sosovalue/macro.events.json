@@ -1,0 +1,14 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/8.-macro/events",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/macro/events",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "code": 0,
+  "message": "success",
+  "data": [
+      {
+          "date": "2026-03-03",
+          "events": ["Nonfarm Payrolls", "CPI"]
+      }
+  ]
+}

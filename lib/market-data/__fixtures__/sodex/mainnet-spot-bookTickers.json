@@ -1,0 +1,149 @@
+{
+  "_captured_at": "2026-11-06T05:42:02Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/spot/markets/bookTickers",
+  "_note": "data trimmed to first 20 of 40 entries",
+  "code": 0,
+  "timestamp": 1793943722590,
+  "data": [
+    {
+      "symbol": "vUSSI_vUSDC",
+      "askPx": "0.9989",
+      "askSz": "223.59",
+      "bidPx": "0.9988",
+      "bidSz": "325.52"
+    },
+    {
+      "symbol": "WSOSO_vUSDC",
+      "askPx": "0.3114",
+      "askSz": "620.43",
+      "bidPx": "0.3111",
+      "bidSz": "629.93"
+    },
+    {
+      "symbol": "vAAVE_vUSDC",
+      "askPx": "129.9",
+      "askSz": "2.99",
+      "bidPx": "129.89",
+      "bidSz": "2.929"
+    },
+    {
+      "symbol": "vDOGE_vUSDC",
+      "askPx": "0.07168",
+      "askSz": "3601",
+      "bidPx": "0.07167",
+      "bidSz": "3267"
+    },
+    {
+      "symbol": "vXAUt_vUSDC",
+      "askPx": "4034.9",
+      "askSz": "0.106",
+      "bidPx": "4034.7",
+      "bidSz": "0.0526"
+    },
+    {
+      "symbol": "vVOO_vUSDC",
+      "askPx": "676.48",
+      "askSz": "7.391",
+      "bidPx": "673.1",
+      "bidSz": "7.428"
+    },
+    {
+      "symbol": "vXLM_vUSDC",
+      "askPx": "0.1544",
+      "askSz": "1121",
+      "bidPx": "0.1543",
+      "bidSz": "1523"
+    },
+    {
+      "symbol": "vGOOGL_vUSDC",
+      "askPx": "283.62",
+      "askSz": "0.766",
+      "bidPx": "283.44",
+      "bidSz": "0.804"
+    },
+    {
+      "symbol": "vUSDT_vUSDC",
+      "askPx": "1.00062",
+      "askSz": "92015.11",
+      "bidPx": "0.99661",
+      "bidSz": "83825.19"
+    },
+    {
+      "symbol": "vMAG7ssi_vUSDC",
+      "askPx": "0.4932",
+      "askSz": "446.62",
+      "bidPx": "0.4931",
+      "bidSz": "752.65"
+    },
+    {
+      "symbol": "vSHIB_vUSDC",
+      "askPx": "0.00000457",
+      "askSz": "51398761",
+      "bidPx": "0.00000456",
+      "bidSz": "58064835"
+    },
+    {
+      "symbol": "vAAPL_vUSDC",
+      "askPx": "342.59",
+      "askSz": "0.576",
+      "bidPx": "342.37",
+      "bidSz": "1.05"
+    },
+    {
+      "symbol": "vLINK_vUSDC",
+      "askPx": "10.753",
+      "askSz": "13",
+      "bidPx": "10.744",
+      "bidSz": "22"
+    },
+    {
+      "symbol": "vTSLA_vUSDC",
+      "askPx": "347.76",
+      "askSz": "0.608",
+      "bidPx": "347.55",
+      "bidSz": "0.963"
+    },
+    {
+      "symbol": "vXRP_vUSDC",
+      "askPx": "1.2013",
+      "askSz": "225.4",
+      "bidPx": "1.2012",
+      "bidSz": "202.4"
+    },
+    {
+      "symbol": "vBTC_vUSDC",
+      "askPx": "75597",
+      "askSz": "0.02815",
+      "bidPx": "75596",
+      "bidSz": "0.02559"
+    },
+    {
+      "symbol": "vMEMEssi_vUSDC",
+      "askPx": "0.1826",
+      "askSz": "203.39",
+      "bidPx": "0.1825",
+      "bidSz": "325.05"
+    },
+    {
+      "symbol": "vNVDA_vUSDC",
+      "askPx": "185.65",
+      "askSz": "2.324",
+      "bidPx": "185.57",
+      "bidSz": "1.584"
+    },
+    {
+      "symbol": "vSOL_vUSDC",
+      "askPx": "89.49",
+      "askSz": "3.104",
+      "bidPx": "89.48",
+      "bidSz": "4.032"
+    },
+    {
+      "symbol": "vARB_vUSDC",
+      "askPx": "0.1673",
+      "askSz": "1584.9",
+      "bidPx": "0.1672",
+      "bidSz": "1424.9"
+    }
+  ]
+}

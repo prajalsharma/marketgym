@@ -1,0 +1,24 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/2.-etf/summary-history",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/etfs/summary-history?symbol=BTC&country_code=US",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "code": 0,
+  "message": "success",
+  "data": [
+      {
+          "date": "2024-04-12",
+          "total_net_inflow": -55066297.0000000000000000,
+          "total_value_traded": 4706120449.0000000000000000,
+          "total_net_assets": 56216535367.0000000000000000,
+          "cum_net_inflow": 13534833596.0950000000000000
+      },
+      {
+          "date": "2024-04-11",
+          "total_net_inflow": 91269283.0000000000000000,
+          "total_value_traded": 2498627928.0000000000000000,
+          "total_net_assets": 59225065270.0000000000000000,
+          "cum_net_inflow": 12581438056.0950000000000000
+      }
+  ]
+}

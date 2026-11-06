@@ -1,0 +1,18 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/1.-currency-and-pairs/list",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/currencies",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "_edits": [
+    "removed trailing \"...\" placeholder element (not valid JSON)"
+  ],
+  "code": 0,
+  "message": "success",
+  "data": [
+      {
+          "currency_id": "1673723677362319867",
+          "symbol": "eth",
+          "name": "Ethereum"
+      }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/3.-sosovalue-index/constituents",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/indices/{index_ticker}/constituents",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "code": 0,
+  "message": "success",
+  "data": [
+      {
+          "currency_id": "1673723677362319867",
+          "symbol": "btc",
+          "weight": 0.31
+      }
+  ]
+}

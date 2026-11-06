@@ -1,0 +1,44 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/6.-feeds/featured-news",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/news/pick?page=1&page_size=20",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "_edits": [
+    "replaced \"[...]\" placeholder in matched_currencies with [] (not valid JSON)"
+  ],
+  "code": 0,
+  "message": "success",
+  "data": {
+      "page": 1,
+      "page_size": 20,
+      "total": 115,
+      "list": [
+          {
+              "id": "news123",
+              "source_link": "https://sosovalue.xyz/research/xxx",
+              "release_time": 1677151845000,
+              "title": "Pick Article Title",
+              "content": "<p>HTML formatted body...</p>",
+              "author": "Author Name",
+              "author_description": "Senior crypto researcher",
+              "author_avatar_url": "https://...",
+              "nick_name": "Author Display ®",
+              "is_blue_verified": 1,
+              "verified_type": "Business",
+              "category": 2,
+              "feature_image": "https://xxx.png",
+              "matched_currencies": [],
+              "tags": ["ETF", "BTC"],
+              "media_info": [
+                  {
+                  "soso_url": "https://static.xxx.com/example.jpg",
+                  "original_url": "",
+                  "short_url": "https://t.co/example",
+                  "type": "photo"
+                  }
+              ],
+              "quote_info": null
+          }
+      ]
+  }
+}

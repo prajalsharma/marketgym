@@ -1,0 +1,28 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/1.-currency-and-pairs/market-snapshot",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/currencies/{currency_id}/market-snapshot",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "code": 0,
+  "message": "success",
+  "data": {
+      "price": 458.0000000000000000,
+      "change_pct_24h": -0.12,
+      "turnover_24h": 4381082458.0000000000000000,
+      "turnover_rate": 0.123,
+      "high_24h": 208.320000000000000000,
+      "low_24h": 195.140000000000000000,
+      "marketcap": 98187284636.4000000000000000,
+      "fdv": 119634407517.24000000,
+      "max_supply": "593383314",
+      "total_supply": "593383314",
+      "circulating_supply": "487043475",
+      "ath": 295.830000000000000000,
+      "ath_date": "1737244800000",
+      "down_from_ath": "",
+      "cycle_low": 175.890000000000000000,
+      "cycle_low_date": "1738540800000",
+      "up_from_cycle_low": "",
+      "marketcap_rank": 4
+  }
+}

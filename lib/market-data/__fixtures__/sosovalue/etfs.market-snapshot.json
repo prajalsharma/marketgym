@@ -1,0 +1,20 @@
+{
+  "_source": "https://sosovalue-1.gitbook.io/sosovalue-api-doc/2.-etf/market-snapshot",
+  "_note": "documentation example, not live data",
+  "_endpoint": "GET /openapi/v1/etfs/{ticker}/market-snapshot",
+  "_envelope": "docs show only the `data` payload; code/message added per documented envelope at https://sosovalue-1.gitbook.io/sosovalue-api-doc/response-format",
+  "code": 0,
+  "message": "success",
+  "data": {
+      "date": "2024-04-12",
+      "ticker": "IBIT",
+      "sponsor_fee": 0.003,
+      "net_inflow": 3000000,
+      "cum_inflow": 400000000,
+      "net_assets": 5000000,
+      "mkt_price": 14.5,
+      "prem_dsc": -0.0001,
+      "value_traded": 4441000000,
+      "volume": 322302
+  }
+}

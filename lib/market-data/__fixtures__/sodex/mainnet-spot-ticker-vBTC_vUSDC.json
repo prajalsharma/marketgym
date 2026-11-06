@@ -1,0 +1,27 @@
+{
+  "_captured_at": "2026-11-06T05:43:10.000Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/spot/markets/tickers?symbol=vBTC_vUSDC",
+  "code": 0,
+  "timestamp": 1793943791699,
+  "data": [
+    {
+      "symbol": "vBTC_vUSDC",
+      "lastPx": "75529",
+      "lastSz": "0.00001",
+      "openPx": "80398",
+      "highPx": "80708",
+      "lowPx": "75147",
+      "volume": "0.72372",
+      "quoteVolume": "55097.26109",
+      "vwap": "76130.6321367379649588",
+      "change": "-4869",
+      "changePct": -6.05612079902485,
+      "askPx": "75525",
+      "askSz": "0.01879",
+      "bidPx": "75524",
+      "bidSz": "0.02128",
+      "openTime": 1793857388418,
+      "closeTime": 1793943788418
+    }
+  ]
+}
