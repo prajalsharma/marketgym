@@ -1,26 +1,532 @@
 @import "tailwindcss";
 
+/* =============================================================================
+   MarketGym design tokens
+   Dark is the default (:root). Light is opt-in via <html data-theme="light">.
+   Every colour below is referenced by role; components never use raw hex.
+   See docs/DESIGN_SYSTEM.md for the full map and usage rules.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+
+  /* Surfaces (deep navy / slate). Three steps only: page, panel, overlay. */
+  --bg: #0b1120;
+  --surface: #111a2c;
+  --surface-raised: #172238;
+  --surface-overlay: #1b2740;
+  --surface-sunken: #0d1526;
+
+  /* Lines: 1px borders. Default is barely there; strong is for separators that must read. */
+  --line: #223050;
+  --line-strong: #30415f;
+
+  /* Ink */
+  --fg: #e7ecf6;
+  --fg-muted: #a3afc6;
+  --fg-subtle: #8491ab;
+  --fg-inverse: #0b1120;
+
+  /* The one accent: indigo. Primary actions, selection, focus, links. */
+  --accent: #8da2ff;
+  --accent-strong: #a9b8ff;
+  --accent-fg: #0b1120;
+  --accent-soft: rgb(141 162 255 / 0.14);
+
+  /* Semantic states. Each has an ink colour and a soft background. */
+  --success: #3ecf7a;
+  --success-soft: rgb(62 207 122 / 0.14);
+  --warning: #f2b544;
+  --warning-soft: rgb(242 181 68 / 0.14);
+  --danger: #f47c7c;
+  --danger-soft: rgb(244 124 124 / 0.14);
+  --info: var(--accent);
+  --info-soft: var(--accent-soft);
+
+  /* Data freshness. Live = green, cached = amber, demo = violet. Never reuse. */
+  --fresh-live: var(--success);
+  --fresh-cached: var(--warning);
+  --fresh-demo: #b8a4e3;
+  --fresh-demo-soft: rgb(184 164 227 / 0.14);
+
+  /* Evidence (market data, cool teal) vs learner (the answer area, accent-adjacent). */
+  --evidence: #0e1c24;
+  --evidence-line: #1f3b48;
+  --evidence-fg: #7ccfe2;
+  --evidence-soft: rgb(124 207 226 / 0.12);
+  --learner: #141a33;
+  --learner-line: #2d3769;
+  --learner-fg: #aab9ff;
+  --learner-soft: rgb(170 185 255 / 0.12);
+
+  /* Order book */
+  --bid: var(--success);
+  --bid-soft: rgb(62 207 122 / 0.16);
+  --ask: var(--danger);
+  --ask-soft: rgb(244 124 124 / 0.16);
+
+  /* Chart palette: 6 categorical (fixed order, never cycled) + 7-step sequential (blue). */
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+  --chart-6: #9085e9;
+  --chart-seq-1: #1b3a66;
+  --chart-seq-2: #1f4f8f;
+  --chart-seq-3: #2a68b8;
+  --chart-seq-4: #3987e5;
+  --chart-seq-5: #5f9fec;
+  --chart-seq-6: #86b6ef;
+  --chart-seq-7: #b7d3f6;
+  --chart-grid: #1f2b45;
+  --chart-axis: var(--fg-subtle);
+  --chart-neutral: #4a5a7a;
+
+  /* Focus */
+  --ring: var(--accent);
+
+  /* Shadows: exactly two levels. Dark mode relies on borders; shadows stay quiet. */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-md: 0 8px 24px -8px rgb(0 0 0 / 0.55), 0 1px 2px rgb(0 0 0 / 0.3);
+
+  /* Radius: modest. */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 260ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Z-index scale (semantic) */
+  --z-dropdown: 30;
+  --z-sticky: 40;
+  --z-backdrop: 50;
+  --z-modal: 60;
+  --z-toast: 70;
+  --z-tooltip: 80;
+
+  /* Layout */
+  --gutter: 16px;
+  --content-max: 72rem;
+  --prose-max: 68ch;
 }
 
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f5f6f9;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
+  --surface-sunken: #eef0f5;
+
+  --line: #e2e6ee;
+  --line-strong: #c9d0dd;
+
+  --fg: #141a2b;
+  --fg-muted: #4b5670;
+  --fg-subtle: #626d88;
+  --fg-inverse: #ffffff;
+
+  --accent: #3b55d6;
+  --accent-strong: #2f46bd;
+  --accent-fg: #ffffff;
+  --accent-soft: rgb(59 85 214 / 0.1);
+
+  --success: #15803d;
+  --success-soft: rgb(21 128 61 / 0.1);
+  --warning: #9a6a12;
+  --warning-soft: rgb(154 106 18 / 0.12);
+  --danger: #c93838;
+  --danger-soft: rgb(201 56 56 / 0.1);
+
+  --fresh-demo: #6e4fc0;
+  --fresh-demo-soft: rgb(110 79 192 / 0.12);
+
+  --evidence: #eef7fa;
+  --evidence-line: #bfdfe8;
+  --evidence-fg: #0e667c;
+  --evidence-soft: rgb(14 102 124 / 0.08);
+  --learner: #eef0fc;
+  --learner-line: #c9d0f5;
+  --learner-fg: #3243b5;
+  --learner-soft: rgb(50 67 181 / 0.08);
+
+  --bid-soft: rgb(21 128 61 / 0.12);
+  --ask-soft: rgb(201 56 56 / 0.12);
+
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+  --chart-6: #6250d6;
+  --chart-seq-1: #cde2fb;
+  --chart-seq-2: #9ec5f4;
+  --chart-seq-3: #6da7ec;
+  --chart-seq-4: #3987e5;
+  --chart-seq-5: #2a78d6;
+  --chart-seq-6: #1c5cab;
+  --chart-seq-7: #0d366b;
+  --chart-grid: #e6eaf2;
+  --chart-neutral: #9aa6bd;
+
+  --shadow-sm: 0 1px 2px rgb(20 26 43 / 0.06);
+  --shadow-md: 0 8px 24px -8px rgb(20 26 43 / 0.18), 0 1px 2px rgb(20 26 43 / 0.06);
+}
+
+/* -----------------------------------------------------------------------------
+   Tailwind v4 theme map. Classes: bg-surface, text-muted, border-line,
+   text-accent, bg-evidence, bg-learner, text-chart-1, rounded-md, shadow-sm …
+   ----------------------------------------------------------------------------- */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-subtle: var(--fg-subtle);
+  --color-inverse: var(--fg-inverse);
+
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --color-fresh-live: var(--fresh-live);
+  --color-fresh-cached: var(--fresh-cached);
+  --color-fresh-demo: var(--fresh-demo);
+  --color-fresh-demo-soft: var(--fresh-demo-soft);
+
+  --color-evidence: var(--evidence);
+  --color-evidence-line: var(--evidence-line);
+  --color-evidence-fg: var(--evidence-fg);
+  --color-evidence-soft: var(--evidence-soft);
+  --color-learner: var(--learner);
+  --color-learner-line: var(--learner-line);
+  --color-learner-fg: var(--learner-fg);
+  --color-learner-soft: var(--learner-soft);
+
+  --color-bid: var(--bid);
+  --color-bid-soft: var(--bid-soft);
+  --color-ask: var(--ask);
+  --color-ask-soft: var(--ask-soft);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-neutral: var(--chart-neutral);
+
+  --color-ring: var(--ring);
+
+  /* Type scale: six sizes. Nothing else. */
+  --text-*: initial;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.625rem;
+  --text-xl--line-height: 2rem;
+  --text-2xl: clamp(2.125rem, 1.6rem + 2vw, 3rem);
+  --text-2xl--line-height: 1.1;
+
+  --radius-*: initial;
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: 9999px;
+
+  --shadow-*: initial;
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+
+  --ease-out: var(--ease-out);
+  --ease-in-out: var(--ease-in-out);
+
+  --animate-skeleton: mg-skeleton 1.6s var(--ease-in-out) infinite;
+  --animate-fade-in: mg-fade-in var(--duration-base) var(--ease-out) both;
+  --animate-rise-in: mg-rise-in var(--duration-slow) var(--ease-out) both;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* -----------------------------------------------------------------------------
+   Base
+   ----------------------------------------------------------------------------- */
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01", "tnum";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--fg);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    letter-spacing: -0.015em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--fg-subtle);
+  }
+
+  /* Numbers line up in tables, ladders and stats. */
+  .tabular,
+  table,
+  kbd,
+  code {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* -----------------------------------------------------------------------------
+   Keyframes (CSS-only loading and entrance motion)
+   ----------------------------------------------------------------------------- */
+@keyframes mg-skeleton {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes mg-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mg-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Utilities
+   ----------------------------------------------------------------------------- */
+@utility gutter {
+  padding-inline: var(--gutter);
+  @media (min-width: 40rem) {
+    padding-inline: 24px;
+  }
+  @media (min-width: 64rem) {
+    padding-inline: 32px;
+  }
+}
+
+@utility content-max {
+  max-width: var(--content-max);
+  margin-inline: auto;
+}
+
+/* Soft depth: the only allowed "glass". Used for sticky bars over scrolling content. */
+@utility surface-sticky {
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+/* -----------------------------------------------------------------------------
+   Lesson prose: markdown-lite text inside lessons, coach replies, evaluations.
+   Capped line length, quiet headings, flat lists.
+   ----------------------------------------------------------------------------- */
+.prose-lesson {
+  max-width: var(--prose-max);
+  color: var(--fg);
+  font-size: var(--text-base);
+  line-height: 1.65;
+}
+.prose-lesson > * + * {
+  margin-top: 0.85em;
+}
+.prose-lesson h1,
+.prose-lesson h2,
+.prose-lesson h3 {
+  color: var(--fg);
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.6em;
+}
+.prose-lesson h1 {
+  font-size: var(--text-xl);
+}
+.prose-lesson h2 {
+  font-size: var(--text-lg);
+}
+.prose-lesson h3 {
+  font-size: var(--text-base);
+}
+.prose-lesson > :first-child {
+  margin-top: 0;
+}
+.prose-lesson p {
+  color: var(--fg);
+}
+.prose-lesson strong {
+  font-weight: 600;
+  color: var(--fg);
+}
+.prose-lesson em {
+  font-style: italic;
+}
+.prose-lesson a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+.prose-lesson a:hover {
+  text-decoration-color: var(--accent);
+}
+.prose-lesson ul,
+.prose-lesson ol {
+  padding-left: 1.4em;
+}
+.prose-lesson ul {
+  list-style: disc;
+}
+.prose-lesson ol {
+  list-style: decimal;
+}
+.prose-lesson li + li {
+  margin-top: 0.35em;
+}
+.prose-lesson li::marker {
+  color: var(--fg-subtle);
+}
+.prose-lesson blockquote {
+  border-left: 1px solid var(--line-strong);
+  padding-left: 1em;
+  color: var(--fg-muted);
+}
+.prose-lesson code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+.prose-lesson pre {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+.prose-lesson pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.prose-lesson hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin-block: 1.6em;
+}
+.prose-lesson table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.prose-lesson th,
+.prose-lesson td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.prose-lesson th {
+  color: var(--fg-muted);
+  font-weight: 500;
+}
+/* Terms the curriculum defines inline. */
+.prose-lesson dfn,
+.prose-lesson .term {
+  font-style: normal;
+  border-bottom: 1px dotted var(--fg-subtle);
+  cursor: help;
 }

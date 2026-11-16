@@ -102,6 +102,8 @@ export interface ScenarioAttempt {
   id: string;
   userId: string;
   scenarioId: string;
+  /** exercise template the scenario was built from; scenario ids are opaque uuids */
+  templateId?: string;
   skillIds: string[];
   submittedAnswer: string;
   hintsUsed: number;

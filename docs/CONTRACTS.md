@@ -125,7 +125,7 @@ Agents run `NEXT_DIST_DIR=.next-<agent> pnpm next dev -p <port>` so builds don't
 ## Curriculum module API (`lib/curriculum/index.ts`)
 
 ```ts
-export const curriculum: Curriculum;                 // one path, 6 modules, 32 skills, misconceptions
+export const curriculum: Curriculum;                 // one path, 6 modules, 33 leaf skills, misconceptions
 export function getSkill(id: string): Skill | undefined;
 export function getModule(id: string): Module | undefined;
 export function getModuleForSkill(skillId: string): Module | undefined;

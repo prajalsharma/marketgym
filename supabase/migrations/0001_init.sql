@@ -99,6 +99,7 @@ create table if not exists public.scenario_attempts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   scenario_id uuid not null references public.scenarios(id) on delete cascade,
+  template_id text,
   skill_ids text[] not null default '{}',
   submitted_answer text not null,
   hints_used smallint not null default 0,
