@@ -59,6 +59,11 @@ export const TID = {
   attemptRow: "attempt-row",
 } as const;
 
+/** DataSourceTag roots: <span data-kind="live|cached|demo"> (components/ui/data-source-tag.tsx). */
+export function dataSourceTags(page: Page): Locator {
+  return page.getByTestId(TID.dataSourceTag).or(page.locator("span[data-kind]"));
+}
+
 /** A locator that prefers a test id but falls back to a role/text locator. */
 export function tidOr(page: Page, testId: string, fallback: Locator): Locator {
   return page.getByTestId(testId).or(fallback);
@@ -122,8 +127,21 @@ async function fillVisibleStep(page: Page, step: number): Promise<number> {
     const el = textInputs.nth(i);
     if ((await el.inputValue()) === "") await el.fill(`QA Learner ${step}`);
   }
+  // Diagnostic choice question: click the first option of the "Answer" group and
+  // confirm the selection registered (the step animates in, so a click can be lost).
+  if (isDiagnostic) {
+    const answerGroup = page.locator("main").getByRole("radiogroup", { name: "Answer" });
+    if (await answerGroup.count()) {
+      const first = answerGroup.getByRole("radio").first();
+      await expect(async () => {
+        await first.click();
+        await expect(first).toHaveAttribute("aria-checked", "true", { timeout: 1_000 });
+      }).toPass({ timeout: 10_000 });
+      return 1;
+    }
+  }
   // Radix RadioGroup renders role=radiogroup with role=radio buttons; native radios also match.
-  const groups = page.getByRole("radiogroup");
+  const groups = page.locator("main").getByRole("radiogroup");
   const groupCount = await groups.count();
   for (let i = 0; i < groupCount; i++) {
     const radios = groups.nth(i).getByRole("radio");
@@ -134,20 +152,20 @@ async function fillVisibleStep(page: Page, step: number): Promise<number> {
     }
   }
   if (groupCount === 0) {
-    const looseRadios = page.getByRole("radio");
+    const looseRadios = page.locator("main").getByRole("radio");
     if ((await looseRadios.count()) > 0) {
       await looseRadios.first().click();
       if (isDiagnostic) answered++;
     }
   }
   // Interests: either checkboxes or aria-pressed toggle buttons. Pick the first two.
-  const boxes = page.getByRole("checkbox");
+  const boxes = page.locator("main").getByRole("checkbox");
   for (let i = 0; i < Math.min(2, await boxes.count()); i++) {
     const b = boxes.nth(i);
     if (!(await b.isChecked().catch(() => false))) await b.click();
   }
-  const toggles = page.locator('button[aria-pressed="false"]');
-  const pressed = page.locator('button[aria-pressed="true"]');
+  const toggles = page.locator('main button[aria-pressed="false"]');
+  const pressed = page.locator('main button[aria-pressed="true"]');
   if ((await pressed.count()) === 0) {
     for (let i = 0; i < Math.min(2, await toggles.count()); i++) await toggles.nth(i).click();
   }
@@ -159,6 +177,14 @@ async function fillVisibleStep(page: Page, step: number): Promise<number> {
     if (isDiagnostic) answered++;
   }
   return answered;
+}
+
+/** Identifies the visible onboarding step: its heading plus the "Question N of M" line, if any. */
+async function stepMarker(page: Page): Promise<string> {
+  // allTextContents() never waits for elements to appear, unlike innerText()
+  const h1 = (await page.locator("main h1").allTextContents()).join("/");
+  const q = (await page.getByText(/Question \d+ of \d+/).allTextContents()).join("/");
+  return `${h1}|${q}`;
 }
 
 /**
@@ -176,7 +202,16 @@ export async function completeOnboarding(page: Page): Promise<{ answers: number;
     await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0, { timeout: 20_000 });
     // Diagnostic step: questions load after mount; wait for the first one before answering.
     if (await page.locator("main h1").filter({ hasText: /diagnostic/i }).count()) {
-      await expect(page.getByText(/Question \d+ of \d+/).first()).toBeVisible({ timeout: 20_000 });
+      // ...unless the diagnostic is being submitted and the result step replaces it.
+      await expect
+        .poll(
+          async () =>
+            (await page.getByText(/Question \d+ of \d+/).count()) > 0 ||
+            (await page.locator("main h1").filter({ hasText: /diagnostic/i }).count()) === 0 ||
+            !/onboarding/.test(page.url()),
+          { timeout: 20_000, message: "diagnostic question or result step" },
+        )
+        .toBe(true);
     }
     answers += await fillVisibleStep(page, steps);
     if (process.env.E2E_DEBUG) {
@@ -192,11 +227,25 @@ export async function completeOnboarding(page: Page): Promise<{ answers: number;
     ).first();
     if (await next.count()) {
       await expect(next).toBeEnabled({ timeout: 10_000 });
+      // Steps animate in place, so wait until the step (heading + question line)
+      // actually changes before reading it again; otherwise the next iteration can
+      // read the outgoing step and skip answering the incoming one.
+      const before = await stepMarker(page);
       await next.click();
+      await expect
+        .poll(async () => !/onboarding/.test(page.url()) || (await stepMarker(page)) !== before, {
+          timeout: 20_000,
+          message: "onboarding step to change",
+        })
+        .toBe(true);
     } else {
       // Result step: a "Start" link to the next mission.
       const link = main.getByRole("link", { name: /^(start|go to dashboard|start learning|begin|continue)\b/i }).first();
-      if (await link.count()) await link.click();
+      if (await link.count()) {
+        // client-side navigation: wait for the URL to leave onboarding, not just network idle
+        await Promise.all([page.waitForURL((u) => !/onboarding/.test(u.pathname), { timeout: 30_000 }), link.click()]);
+        break;
+      }
       else {
         // Submitting (e.g. "Working out your start…"): wait for an enabled control or a navigation.
         await Promise.race([
@@ -249,6 +298,11 @@ export const LONG_ANSWER = [
  * fails only on "serious" / "critical" impact.
  */
 export async function checkA11y(page: Page, testInfo: TestInfo, label: string): Promise<void> {
+  // Scan a settled page: no loading regions and no running CSS transitions/animations,
+  // otherwise colour contrast is measured on mid-fade frames (e.g. a button re-enabling).
+  await page.waitForLoadState("networkidle");
+  await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 20_000 });
+  await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== "running"), undefined, { timeout: 10_000 }).catch(() => undefined);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"])
     .analyze();

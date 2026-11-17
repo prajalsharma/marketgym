@@ -55,6 +55,32 @@ pnpm check        # all of the above except e2e
 
 Vercel + Supabase. Set the variables above in Vercel, run the migration and seed against the Supabase project, deploy. The in-memory market-data cache and rate limiter are per instance (fine for a single Vercel region; swap for Redis if you scale out).
 
+## Demo flow (about three minutes)
+
+1. `pnpm dev`, open http://localhost:3000, click **Start**, then **Continue** (local mode).
+2. Onboarding: pick a goal, level and interests, answer the 7-question diagnostic, see your starting point.
+3. **Overview** shows your track, module locks and the next mission.
+4. **Scenario lab**: the evidence column shows each source with its provider and a live / cached / demo tag and time. Write an answer that separates what you see from what you infer, submit, and read the four-part score, missing evidence and misconceptions.
+5. The next mission updates from that result. **My progress** shows the attempt, mastery state and review schedule.
+6. **Order book gym**: a live SoDEX BTC/USDC book (read-only). Work out the spread, submit, see the grading.
+
+## Tests
+
+| Suite | Command | Result (2026-11-17) |
+|---|---|---|
+| Typecheck | `pnpm typecheck` | 0 errors |
+| Lint | `pnpm lint` | clean |
+| Unit, API, security | `pnpm test` | 380 / 380 |
+| E2E (desktop + mobile, axe) | `pnpm test:e2e` | 16 / 16, three consecutive runs |
+| Secrets scan | `bash scripts/check-secrets.sh` | OK |
+| Production build | `pnpm build` | OK |
+
 ## Known limitations
 
-See the end of this file after the build is complete (filled by the final report).
+- **SoSoValue is unverified live.** Routes and fields come from the official docs; without an API key every SoSoValue card shows labelled demo fixtures. Get a key at sosovalue.com/developer/dashboard (applications are reviewed). The unit of `change_pct_24h` (percent or fraction) needs confirming against a real response.
+- **OpenAI path is unverified live.** Without `OPENAI_API_KEY` the coach runs a scripted offline flow and the evaluator is rule-based; both say so in the UI. With a key, any schema rejection falls back to the same offline/rule path rather than failing.
+- **Supabase RLS is reviewed, not executed.** No local Postgres was available; policies are checked by reading the migration. Learner tables are read-only for learners and written by the server with the service role.
+- **Local mode is single-user with no login.** A production server refuses it unless `ALLOW_LOCAL_MODE=true`.
+- **Per-instance cache and rate limiter.** Fine for one region; use Redis if you scale out.
+- **E2E runs serially** (`workers: 1`) because local mode has one learner.
+- Order-book gym results feed mastery through knowledge-check records; there is no separate order-book evidence type yet.

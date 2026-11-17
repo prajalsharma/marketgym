@@ -90,7 +90,11 @@ export class LocalRepository implements Repository {
       if (code !== "ENOENT") {
         console.warn(`[local-repository] could not read ${this.filePath}; starting empty`, err instanceof Error ? err.message : err);
       }
-      if (!this.store) this.store = emptyStore();
+      // a removed file means "start fresh" (demo reset, E2E isolation); a corrupt file keeps memory
+      if (!this.store || code === "ENOENT") {
+        this.store = emptyStore();
+        this.loadedMtimeMs = -1;
+      }
     }
     return this.store;
   }

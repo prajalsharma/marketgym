@@ -40,5 +40,6 @@ test("coach replies to a topic question and discloses offline mode", async ({ pa
   // Offline-mode notice when there is no model key.
   const notice = tidOr(page, TID.coachModeNotice, page.getByText(/offline mode|scripted|no (ai|model) (key|configured)/i)).first();
   await expect(notice).toBeVisible();
-  await expect(page.getByText(/\bAI coach\b/).filter({ hasText: /^AI coach$/ })).toHaveCount(0); // badge must not claim AI
+  // The mode badge reads "Offline mode", never the AI badge (the page title "AI coach" is fine).
+  await expect(page.getByText(/^Offline mode$/).first()).toBeVisible();
 });

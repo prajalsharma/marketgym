@@ -38,13 +38,13 @@ export interface ProgressProps
 }
 
 const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
-  ({ className, value, tone, label, size = "md", showValue = false, ...props }, ref) => {
+  ({ className, value, tone, label, size = "md", showValue = false, "aria-label": ariaLabel, ...props }, ref) => {
     const clamped = Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
     return (
       <div ref={ref} className={cn("flex items-center gap-3", className)} {...props}>
         <div
           role="progressbar"
-          aria-label={label}
+          aria-label={label ?? ariaLabel}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(clamped)}

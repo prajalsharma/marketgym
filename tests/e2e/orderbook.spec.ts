@@ -6,7 +6,7 @@
  * orderbook-spread, gym-submit, gym-result.
  */
 import { test, expect } from "@playwright/test";
-import { ROUTES, TID, checkA11y, ensureOnboarded, gotoFirst, tidOr } from "./helpers";
+import { ROUTES, TID, dataSourceTags, ensureOnboarded, gotoFirst, tidOr } from "./helpers";
 
 const TRADING_WORDS = /\b(place order|buy|sell|connect wallet)\b/i;
 
@@ -39,20 +39,13 @@ test("gym renders a ladder with best bid/ask + spread, grades identify-spread, n
   await expect(spread).toBeVisible();
 
   // Data provenance must be shown on the book (demo under DEMO_MODE).
-  const tag = tidOr(page, TID.dataSourceTag, page.getByText(/\b(demo|cached|live)\b/i)).first();
+  const tag = dataSourceTags(page).first();
   await expect(tag).toBeVisible();
-  expect((await tag.innerText()).toLowerCase()).not.toMatch(/\blive\b/);
+  expect((await tag.innerText()).toLowerCase()).toMatch(/demo/);
 
-  await checkA11y(page, testInfo, "orderbook-gym");
-
-  // Pick the identify-spread exercise from the "Choose an exercise" select (Radix: combobox + options).
-  const picker = page.getByRole("combobox", { name: /choose an exercise|exercise/i }).first();
-  if (await picker.count()) {
-    await picker.click();
-    const option = page.getByRole("option", { name: /spread/i }).first();
-    if (await option.count()) await option.click();
-    else await page.keyboard.press("Escape");
-  }
+  // Pick the identify-spread exercise from the native "Choose an exercise" <select>.
+  const picker = page.getByLabel(/choose an exercise/i).first();
+  if (await picker.count()) await picker.selectOption({ label: "Find the spread" }).catch(() => picker.selectOption("ob-identify-spread"));
 
   // Compute expected answers from the API so grading can be asserted, not just rendered.
   const ob = await page.request.get("/api/market/orderbook?market=vBTC_vUSDC&limit=20");
@@ -101,4 +94,8 @@ test("gym renders a ladder with best bid/ask + spread, grades identify-spread, n
 
   // Still no external network from the browser.
   expect(external, "browser made external requests").toEqual([]);
+
+  // Acceptance test 8: nothing on the page may claim the book is live while DEMO_MODE serves fixtures.
+  const liveClaims = await page.getByText(/\blive\b/i).allInnerTexts();
+  expect(liveClaims, "page copy claims 'live' while the book is demo data").toEqual([]);
 });

@@ -7,7 +7,7 @@
  * Expected selectors: market-card, data-source-tag.
  */
 import { test, expect } from "@playwright/test";
-import { ROUTES, TID, ensureOnboarded, getScenarioId, gotoFirst, tidOr } from "./helpers";
+import { ROUTES, TID, dataSourceTags, ensureOnboarded, getScenarioId, gotoFirst } from "./helpers";
 
 const MARKET_ROUTES = [
   "/api/market/snapshot?assets=BTC,ETH",
@@ -53,7 +53,7 @@ test("UI: every data card in the scenario lab and the gym is labelled demo and n
   const scenarioId = await getScenarioId(page);
   for (const target of [ROUTES.scenario(scenarioId), ROUTES.orderbookGym]) {
     await gotoFirst(page, target);
-    const tags = tidOr(page, TID.dataSourceTag, page.getByText(/\b(demo data|live|cached)\b/i));
+    const tags = dataSourceTags(page);
     await expect(tags.first()).toBeVisible({ timeout: 30_000 });
     const count = await tags.count();
     for (let i = 0; i < count; i++) {
@@ -64,6 +64,7 @@ test("UI: every data card in the scenario lab and the gym is labelled demo and n
     const cards = page.getByTestId(TID.marketCard);
     for (let i = 0; i < (await cards.count()); i++) await expect(cards.nth(i).getByText(/demo/i).first()).toBeVisible();
     // No visible element claims live data anywhere on the page.
-    expect(await page.getByText(/\blive (data|price|feed|market|order book)\b/i).count(), `${target}: elements claiming live data`).toBe(0);
+    const claims = await page.getByText(/\blive\b/i).allInnerTexts();
+    expect(claims, `${target}: copy claiming 'live' while every tag is demo`).toEqual([]);
   }
 });

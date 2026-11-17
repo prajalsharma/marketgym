@@ -42,7 +42,7 @@ create table if not exists public.modules (
 -- ---------- learner data (RLS) ----------
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  display_name text not null default '',
+  display_name text not null default '' check (char_length(display_name) <= 80),
   experience_level text not null default 'new' check (experience_level in ('new','some','experienced')),
   learning_goal text not null default 'read-market-data',
   preferred_learning_style text not null default 'concise' check (preferred_learning_style in ('concise','detailed','examples')),
@@ -200,13 +200,15 @@ alter table public.activity_events enable row level security;
 
 create policy "own profile" on public.profiles for all using (auth.uid() = id) with check (auth.uid() = id);
 create policy "own sessions" on public.learning_sessions for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own diagnostics" on public.diagnostics for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own attempts" on public.scenario_attempts for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own diagnostics read" on public.diagnostics for select using (auth.uid() = user_id);
+-- attempts, knowledge-check results, coach sessions and diagnostics feed mastery and the
+-- model context, so learners can only read them; the server writes with the service role.
+create policy "own attempts read" on public.scenario_attempts for select using (auth.uid() = user_id);
 -- mastery is read-only for learners; only the server (service role) writes it.
 create policy "own mastery read" on public.user_skill_mastery for select using (auth.uid() = user_id);
 create policy "own reviews read" on public.learning_reviews for select using (auth.uid() = user_id);
-create policy "own kc results" on public.knowledge_check_results for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own coach sessions" on public.coach_sessions for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own kc results read" on public.knowledge_check_results for select using (auth.uid() = user_id);
+create policy "own coach sessions read" on public.coach_sessions for select using (auth.uid() = user_id);
 create policy "own activity read" on public.activity_events for select using (auth.uid() = user_id);
 
 -- auto-create profile on signup

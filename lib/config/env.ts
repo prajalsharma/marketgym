@@ -15,6 +15,13 @@ const schema = z.object({
     .default("false")
     .transform((v) => v === "true" || v === "1"),
   NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
+  /** local mode has no authentication; a production server refuses it unless this is "true" */
+  ALLOW_LOCAL_MODE: z
+    .string()
+    .default("false")
+    .transform((v) => v === "true" || v === "1"),
+  MARKETGYM_DATA_FILE: z.string().default(".data/marketgym.json"),
+  NODE_ENV: z.string().default("development"),
 });
 
 export type Env = z.infer<typeof schema> & {

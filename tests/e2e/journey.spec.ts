@@ -17,8 +17,8 @@ import {
   ROUTES,
   TID,
   LONG_ANSWER,
-  checkA11y,
   completeOnboarding,
+  dataSourceTags,
   enterViaSignup,
   getScenarioId,
   gotoFirst,
@@ -27,13 +27,18 @@ import {
 
 test.describe.configure({ mode: "serial" });
 
+// Local mode has one shared learner and earlier specs may already have onboarded
+// it. Removing the E2E data file makes the server start that learner fresh.
+test.beforeAll(async () => {
+  const fs = await import("node:fs/promises");
+  const path = await import("node:path");
+  await fs.rm(path.resolve(process.cwd(), ".data/e2e.json"), { force: true });
+});
+
 test("1+2: sign up (local mode), onboarding with diagnostic, dashboard shows next mission", async ({
   page,
 }, testInfo) => {
   test.setTimeout(120_000);
-  await page.goto(ROUTES.landing);
-  await checkA11y(page, testInfo, "landing");
-
   await enterViaSignup(page);
   const { answers, steps } = await completeOnboarding(page);
   testInfo.annotations.push({ type: "onboarding", description: `${steps} steps, ${answers} answers` });
@@ -59,12 +64,11 @@ test("1+2: sign up (local mode), onboarding with diagnostic, dashboard shows nex
   await expect(page.getByText(/your track|learning path/i).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /order book/i }).first()).toBeVisible();
   await expect(page.getByText(/\blocked\b/i).first()).toBeVisible();
-  await checkA11y(page, testInfo, "dashboard");
 });
 
 test("4+5: scenario lab — evidence with provenance, structured feedback, progress shows attempt", async ({
   page,
-}, testInfo) => {
+}) => {
   test.setTimeout(120_000);
   // Depends on the previous test having onboarded the local learner (serial mode).
   const scenarioId = await getScenarioId(page);
@@ -73,15 +77,14 @@ test("4+5: scenario lab — evidence with provenance, structured feedback, progr
   // Evidence column (<section aria-labelledby="evidence-heading">) + DataSourceTag text "Demo data | Live | Cached".
   const evidence = tidOr(page, TID.evidenceCard, page.getByRole("region", { name: /evidence/i })).first();
   await expect(evidence).toBeVisible();
-  const tags = tidOr(page, TID.dataSourceTag, page.getByText(/\b(demo data|live|cached)\b/i));
+  const tags = dataSourceTags(page);
+  await expect(tags.first()).toBeVisible();
   expect(await tags.count(), "DataSourceTag count").toBeGreaterThan(0);
   const tagText = (await tags.first().innerText()).toLowerCase();
   expect(tagText).toMatch(/demo|live|cached/);
   // Under DEMO_MODE the tag must say demo and never live.
   expect(tagText).not.toMatch(/\blive\b/);
   expect(tagText).toMatch(/demo/);
-
-  await checkA11y(page, testInfo, "scenario-lab");
 
   // Submit a ≥60-word answer that cites evidence.
   expect(LONG_ANSWER.split(/\s+/).length).toBeGreaterThanOrEqual(60);

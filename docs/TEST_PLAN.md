@@ -9,10 +9,10 @@ Run modes: **local** = Supabase unset, `DEMO_MODE=true` (what Playwright uses, s
 |---|---|---|
 | Security unit tests | `pnpm vitest run tests/unit/security` | No network, no server. Suites `it.skip` with a reason until the file they target exists. |
 | All unit tests | `pnpm test` | Includes AI/learning/API/market-data/db suites owned by other agents. |
-| E2E desktop + mobile | `pnpm test:e2e` | Starts `next dev -p 3100` with `DEMO_MODE=true`, data file `.data/e2e.json`. Delete that file for a fresh learner. `--project=desktop` or `--project=mobile` to pick one. |
+| E2E desktop + mobile | `pnpm test:e2e` | Starts `next dev -p 3100` with `DEMO_MODE=true`, data file `.data/e2e.json`. Delete that file for a fresh learner. `--project=desktop` or `--project=mobile` to pick one. **Run with one worker** (`--workers=1`, or set `workers: 1` in `playwright.config.ts`): local mode has a single learner, so parallel specs would race through the same onboarding/attempt state. Next 16 allows one `next dev` per dist dir: if another process already holds `.next-e2e/dev/lock` (e.g. a second `pnpm test:e2e`), the webServer exits 1 with "Another next dev server is already running". |
 | Secrets scan | `scripts/check-secrets.sh` | Exit 1 on any key-looking string or an un-ignored `.env*`. |
 | Typecheck + build | `pnpm typecheck && pnpm build` | Acceptance test 12. |
-| Accessibility | part of `pnpm test:e2e` | axe-core on landing, dashboard, scenario lab, order-book gym. Fails on `serious`/`critical`; lower impacts are attached to the Playwright report (`axe-<page>` attachment) and printed to the console. |
+| Accessibility | `tests/e2e/z-a11y.spec.ts` (part of `pnpm test:e2e`) | axe-core on landing, dashboard, scenario lab, order-book gym. Fails on `serious`/`critical`; lower impacts are attached to the Playwright report (`axe-<page>` attachment) and printed to the console. Kept separate from the flow specs so an a11y regression does not mask a functional one. |
 
 ## Acceptance tests → coverage
 
@@ -28,7 +28,7 @@ Run modes: **local** = Supabase unset, `DEMO_MODE=true` (what Playwright uses, s
 | 8 | When an external API is unavailable the UI marks demo data and never claims live | `tests/e2e/fallback.spec.ts` (every `/api/market/*` item `demo`/`fixture`; UI tags say demo, no "live" text) + `tests/unit/security/provenance.test.ts` (warm cache + failing provider ⇒ `cached` + note; cold + failing ⇒ `demo` + reason) | Keyed: set `SODEX_MARKET_DATA_BASE_URL=https://127.0.0.1:9/` and reload the gym: tag reads "demo" with the failure note, never "live". | |
 | 9 | Order-book exercise completes with no real orders / wallet | `tests/e2e/orderbook.spec.ts` (ladder, best bid/ask, spread, submit identify-spread, result; no element matching /place order\|buy\|sell\|connect wallet/i; no non-localhost browser requests) + `provenance.test.ts` (adapter only calls `markets/*`) + static grep in `docs/SECURITY.md` | `grep -rn "markets/" lib/market-data/sodex` lists only symbols/orderbook/tickers; `http.ts` is GET-only. | |
 | 10 | User-specific data can't be read/modified by another authenticated user | `tests/unit/security/repository-isolation.test.ts` (local repo) + `route-auth.test.ts` (401 without a user on every non-public route) + RLS review in `docs/SECURITY.md` | Supabase: two users A/B; with A's JWT `GET /rest/v1/scenario_attempts?user_id=eq.<B>` → `[]`; `PATCH /rest/v1/user_skill_mastery` with A's JWT → 0 rows (select-only policy). | |
-| 11 | Main workflow works desktop + mobile | `journey.spec.ts`, `coach.spec.ts`, `orderbook.spec.ts`, `fallback.spec.ts` run under both Playwright projects (`desktop` = Desktop Chrome, `mobile` = Pixel 7) | Spot-check on a real phone: onboarding radio groups tappable, evidence cards readable, answer textarea usable. | |
+| 11 | Main workflow works desktop + mobile | `journey.spec.ts`, `coach.spec.ts`, `orderbook.spec.ts`, `fallback.spec.ts`, `z-a11y.spec.ts` run under both Playwright projects (`desktop` = Desktop Chrome, `mobile` = Pixel 7) | Spot-check on a real phone: onboarding radio groups tappable, evidence cards readable, answer textarea usable. | |
 | 12 | Typecheck + production build pass | `pnpm typecheck && pnpm build` (lead runs; CI step) | — | |
 
 ## Security unit suites (`tests/unit/security`)
@@ -67,7 +67,9 @@ The E2E helpers try these first and fall back to role/text selectors. Adding the
 
 ## Page routes assumed by the E2E suite
 
-`/`, `/signup`, `/login`, `/app/onboarding`, `/app`, `/app/scenarios/[id]`, `/app/coach`, `/app/orderbook-gym` (fallbacks `/app/orderbook`, `/app/gym`), `/app/progress`. If the frontend uses different paths, update `ROUTES` in `tests/e2e/helpers.ts` only.
+`/`, `/signup`, `/login`, `/app/onboarding`, `/app`, `/app/scenario-lab/[id]` (fallback `/app/scenarios/[id]`), `/app/coach`, `/app/orderbook-gym` (fallbacks `/app/orderbook`, `/app/gym`), `/app/progress`. If the frontend changes paths, update `ROUTES` in `tests/e2e/helpers.ts` only.
+
+Selectors the suite relies on today (no test ids yet): `span[data-kind]` (DataSourceTag root), `section[aria-labelledby=next-mission-heading]` ("Up next"), `[role=progressbar]` named by rubric label, ScoreRing `role=img` "… out of 100", `li.coach-turn.items-start` (coach turns), `ol[aria-label^=Asks]`/`ol[aria-label^=Bids]` (ladder), "Choose an exercise" combobox, "Check answers" button, "Assessment history" table rows. Onboarding controls are scoped to `<main>` because the Next dev-tools toggle ("Close Next.js Dev Tools") otherwise matches /next/.
 
 ## Known gaps / not automated
 

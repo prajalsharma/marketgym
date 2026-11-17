@@ -10,7 +10,7 @@ Everything shared between agents lives here or in the files it points to. Nobody
 | `lib/types/curriculum.ts` | `Skill`, `Module`, `KnowledgeCheck`, `ExerciseTemplate`, `Rubric`, `Misconception`, `Curriculum` |
 | `lib/types/learning.ts` | `Profile`, `DiagnosticResult`, `Scenario`, `ScenarioAttempt`, `Evaluation`, `MasteryRecord`, `Review`, `CoachSession`, `ActivityEvent`, `NextMission` |
 | `lib/types/api.ts` | API envelope (`ApiOk`/`ApiErr`), status map, request/response types per route |
-| `lib/db/repository.ts` | `Repository` interface every service uses for persistence |
+| `lib/db/repository.ts` | `Repository` interface every service uses for persistence, plus `KnowledgeCheckResult` |
 | `lib/config/env.ts` | `getEnv()` — the only place `process.env` is read |
 | `supabase/migrations/0001_init.sql` | Schema + RLS |
 | This file | Skill ids, misconception ids, route list, provenance rules |
@@ -58,7 +58,7 @@ observation-is-interpretation    confidence-is-evidence        thesis-without-in
 
 ## Route list (app/api)
 
-All routes return `ApiResponse<T>` from `lib/types/api.ts` with the status from `API_STATUS`. Routes under `/api/learning`, `/api/coach`, `/api/scenarios`, `/api/progress`, `/api/profile`, `/api/orderbook-gym` require a learner (401 otherwise). `/api/market/*` is public but rate-limited (60/min/ip).
+All routes return `ApiResponse<T>` from `lib/types/api.ts` with the status from `API_STATUS`. Routes under `/api/learning`, `/api/coach`, `/api/scenarios`, `/api/progress`, `/api/profile`, `/api/diagnostic`, `/api/orderbook-gym` require a learner (401 otherwise). `/api/market/*` is public but rate-limited (60/min/ip).
 
 ```
 GET  /api/profile                       ProfileResponse
@@ -172,3 +172,11 @@ export function coachHint(session: CoachSession): CoachSession;
 // lib/ai/evaluators/evaluate.ts
 export async function evaluateAttempt(input: { scenario: Scenario; answer: string; hintsUsed: number; memory: LearningMemory }): Promise<Evaluation>;
 ```
+
+## Changes after the build (lead)
+
+- `ScenarioAttempt.templateId` (optional, always set by the attempt route): scenario ids are opaque uuids, so the learning engine reads the template from the attempt.
+- `/api/scenarios/next` never returns a scenario the learner has already answered; "distinct scenarios" for mastery and mission selection are counted by scenario id.
+- `scheduleReview(record, now, existing?)` takes the skill's reviews as an optional third argument.
+- Auth routes: `POST /api/auth/signup|login|logout` (local mode returns `{ mode: "local", redirectTo }`).
+- Production refuses local mode unless `ALLOW_LOCAL_MODE=true`.

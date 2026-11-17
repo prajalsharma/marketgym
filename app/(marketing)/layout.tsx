@@ -7,7 +7,7 @@ export default function MarketingLayout({ children }: LayoutProps<"/">) {
     <TooltipProvider delayDuration={200}>
       <div className="flex min-h-dvh flex-col">
         <SiteHeader />
-        <div className="flex-1">{children}</div>
+        <main id="main" className="flex-1">{children}</main>
         <SiteFooter />
       </div>
     </TooltipProvider>

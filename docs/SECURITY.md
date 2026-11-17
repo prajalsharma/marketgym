@@ -16,7 +16,7 @@ Owner: QA / Security. Reviewed against the tree on 2026-11-06. Findings marked *
 ## 2. Auth boundary
 
 - `lib/auth/session.ts`: `getCurrentUser()` / `requireUser()` are the only entry points. Supabase mode uses `@supabase/ssr` cookie sessions and `auth.getUser()` (server-validated, not `getSession()`), which is correct. `proxy-session.ts` refreshes cookies and redirects unauthenticated `/app/*` to `/login`.
-- **Local mode caveat (by design):** when Supabase is not configured, *every* request is `local-demo-user` (`lib/auth/local.ts`). There is no authentication at all. Local mode must only be used for demos and E2E on a machine you trust; a deployed instance without Supabase would expose one shared learner to the whole internet. Recommend: in `next.config.ts` or `proxy.ts`, refuse to start in production (`NODE_ENV=production`) with `supabaseEnabled=false` unless `ALLOW_LOCAL_MODE=true` is set explicitly.
+- **Local mode caveat (by design):** when Supabase is not configured, *every* request is `local-demo-user` (`lib/auth/local.ts`). There is no authentication at all. Local mode must only be used for demos and E2E on a machine you trust; a deployed instance without Supabase would expose one shared learner to the whole internet. **Fixed (2026-11-17):** `lib/auth/session.ts` refuses local mode when `NODE_ENV=production` unless `ALLOW_LOCAL_MODE=true` is set (API returns 503 with an explanation).
 - Service-role client (`lib/auth/supabase.ts:createSupabaseServiceClient`) is a module singleton on the server; nothing under `components/` or `app/(…)` imports it (verify with `grep -rn "createSupabaseServiceClient" app components` as part of review; the unit test `llm-output.test.ts` checks `lib/ai` only).
 - `/api/diagnostic` is not in the CONTRACTS.md list of learner-only prefixes but stores per-user results; the route-auth test treats it as protected. Lead: add it to the list.
 
@@ -28,10 +28,10 @@ All 15 tables have `enable row level security`. Public read on curriculum tables
 |---|---|---|
 | `profiles` | `for all` own row | OK (learner-owned) |
 | `learning_sessions` | `for all` own rows | OK, table unused by the repository today |
-| `diagnostics` | `for all` own rows | **GAP (low):** learner can rewrite their diagnostic; only affects their own path. Prefer select-only + service-role write. |
-| `scenario_attempts` | `for all` own rows | **GAP (high):** `total_score`, `rubric_scores`, `feedback` are learner-writable with the anon key + JWT (`POST /rest/v1/scenario_attempts`). `mastery.ts` recomputes mastery from attempts, so a learner can forge two 100-point attempts and become "mastered". Fix: `for select using (auth.uid() = user_id)` only; write attempts with the service role in `lib/db/supabase-repository.ts:saveAttempt` (currently `this.user`, line ~309). |
-| `knowledge_check_results` | `for all` own rows | **GAP (high):** `correct` is learner-writable; "practising = ≥2 correct knowledge checks" and review passes are derived from it. Same fix: select-only, service-role write (`saveKnowledgeCheckResult`, line ~476). |
-| `coach_sessions` | `for all` own rows | **GAP (medium):** learner can inject coach-role messages into the transcript the model then reads as prior context (prompt-injection vector in Supabase mode) and flip `status`. Fix: select-only, service-role write (`saveCoachSession`, line ~411/439). |
+| `diagnostics` | select own; writes service-role only | **Fixed (2026-11-17):** was learner-writable (low). |
+| `scenario_attempts` | select own; writes service-role only | **Fixed (2026-11-17):** was learner-writable (high: forged scores → forged mastery). `saveAttempt` now uses the service role. |
+| `knowledge_check_results` | select own; writes service-role only | **Fixed (2026-11-17):** was learner-writable (high). `saveKnowledgeCheckResult` now uses the service role. |
+| `coach_sessions` | select own; writes service-role only | **Fixed (2026-11-17):** was learner-writable (medium: planted coach turns). `saveCoachSession` now uses the service role. |
 | `user_skill_mastery` | select own; writes service-role only | OK |
 | `learning_reviews` | select own; writes service-role only | OK |
 | `activity_events` | select own; writes service-role only | OK |
@@ -67,12 +67,12 @@ All request bodies and queries go through Zod schemas in `lib/server/validation.
 
 ## 8. Data provenance honesty
 
-Every `MarketSnapshot`/`NewsEvidence`/`EtfFlowSeries`/`IndexSnapshot`/`OrderBookSnapshot` carries `DataProvenance { kind, provider, sourceUrl, fetchedAt, asOf?, expiresAt?, note? }`. `lib/market-data/cache.ts` labels `live` only for a fetch made in this request, `cached` within TTL, and `cached` + note after a provider failure (holding the stale copy ≤ 30 s before retrying). Services fall back to fixtures with `kind: "demo"`, `provider: "fixture"` and a note stating why. `DEMO_MODE=true` never calls a provider (`tests/unit/security/provenance.test.ts` spies on `fetch`). The UI must show `<DataSourceTag>` on every card; the E2E suite fails if any tag says "live" in demo mode.
+Every `MarketSnapshot`/`NewsEvidence`/`EtfFlowSeries`/`IndexSnapshot`/`OrderBookSnapshot` carries `DataProvenance { kind, provider, sourceUrl, fetchedAt, asOf?, expiresAt?, note? }`. `lib/market-data/cache.ts` labels `live` only for a fetch made in this request, `cached` within TTL, and `cached` + note after a provider failure (holding the stale copy ≤ 30 s before retrying). Services fall back to fixtures with `kind: "demo"`, `provider: "fixture"` and a note stating why. `DEMO_MODE=true` never calls a provider (`tests/unit/security/provenance.test.ts` spies on `fetch`). The UI must show `<DataSourceTag>` on every card; the E2E suite fails if any tag says "live" in demo mode, and also if any page copy claims "live" while every tag is demo. **Resolved (2026-11-17):** the order-book gym description used to hard-code "A live SoDEX book" next to a "Demo data" tag; it now reads "A real SoDEX order book, read-only… The tag on the book shows where the data came from and when." `tests/e2e/orderbook.spec.ts` and `fallback.spec.ts` fail if any page copy says "live" while the tags say demo.
 
 ## 9. Known limitations
 
 - Local mode is unauthenticated by design (§2). Do not deploy it publicly.
 - In-memory cache and rate limiter are per-instance.
-- RLS is reviewed, not executed, in CI (no Postgres). The §3 gaps are open until the migration and `supabase-repository.ts` are changed together.
+- RLS is reviewed, not executed, in CI (no Postgres). The §3 gaps were closed in the migration and `supabase-repository.ts` together (2026-11-17); `display_name` is also capped at 80 chars.
 - `lib/db/local-repository.ts:localDataFilePath` reads `process.env.MARKETGYM_DATA_FILE` directly, contrary to the "only `lib/config/env.ts` reads `process.env`" rule; harmless, but the lead may want it in `env.ts`.
 - The secrets scanner is pattern-based (OpenAI `sk-`, JWTs, service-role literals, `x-soso-api-key` literals, env assignments with long values, private-key blocks). It will not catch a provider key with an unfamiliar format; keep secrets out of fixtures and docs regardless.

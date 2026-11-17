@@ -251,7 +251,8 @@ export class SupabaseRepository implements Repository {
   // ----- diagnostic -----
 
   async saveDiagnostic(result: DiagnosticResult): Promise<DiagnosticResult> {
-    const res = await this.user
+    // server-only write (service role): learners have read-only RLS on diagnostics
+    const res = await this.service()
       .from("diagnostics")
       .insert({ id: result.id, user_id: result.userId, result, created_at: result.createdAt })
       .select("*")
@@ -307,7 +308,8 @@ export class SupabaseRepository implements Repository {
   }
 
   async saveAttempt(attempt: ScenarioAttempt): Promise<ScenarioAttempt> {
-    const res = await this.user
+    // server-only write (service role): learners have read-only RLS on scenario_attempts
+    const res = await this.service()
       .from("scenario_attempts")
       .insert({
         id: attempt.id,
@@ -410,7 +412,8 @@ export class SupabaseRepository implements Repository {
   // ----- coach -----
 
   async saveCoachSession(session: CoachSession): Promise<CoachSession> {
-    const res = await this.user
+    // server-only write (service role): learners have read-only RLS on coach_sessions
+    const res = await this.service()
       .from("coach_sessions")
       .upsert(
         {
@@ -475,7 +478,8 @@ export class SupabaseRepository implements Repository {
   // ----- knowledge checks -----
 
   async saveKnowledgeCheckResult(r: KnowledgeCheckResult): Promise<KnowledgeCheckResult> {
-    const res = await this.user
+    // server-only write (service role): learners have read-only RLS on knowledge_check_results
+    const res = await this.service()
       .from("knowledge_check_results")
       .insert({
         id: r.id,
