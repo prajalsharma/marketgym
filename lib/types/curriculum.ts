@@ -9,7 +9,8 @@ export type SkillCategory =
   | "etf"
   | "indexes"
   | "orderbook"
-  | "reasoning";
+  | "reasoning"
+  | "wealth";
 
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 

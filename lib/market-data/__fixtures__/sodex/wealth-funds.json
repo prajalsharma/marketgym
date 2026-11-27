@@ -1,0 +1,230 @@
+{
+  "_captured_at": "2026-11-27T09:50:36.956Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/wealth/funds",
+  "code": 0,
+  "timestamp": 1795773036601,
+  "data": [
+    {
+      "fundId": "antb",
+      "name": "ANT Believers Index",
+      "fundType": "ssi-v2",
+      "fundStatus": "live",
+      "nav": "9.6234574440422935",
+      "asOf": "2026-11-27T09:49:58Z",
+      "share": {
+        "coin": "ANTB.ssi",
+        "address": "0x1b0c2d25f432280882ffbd7da4f5b0597ecc3139",
+        "decimals": 18
+      }
+    },
+    {
+      "fundId": "CXMT",
+      "name": "CXMT",
+      "fundType": "escrow_vault",
+      "fundStatus": "live",
+      "nav": "4.937955756657073554",
+      "aum": "18066.980495",
+      "asOf": "2026-11-27T08:45:16Z",
+      "share": {
+        "coin": "aCXMT",
+        "address": "0x9876b381a94876ea8fea56b625e15556fb450629",
+        "decimals": 18
+      }
+    },
+    {
+      "fundId": "Morpho-Earn",
+      "name": "SoSoValue x Unified Labs USDC",
+      "fundType": "bridged_vault",
+      "fundStatus": "live",
+      "nav": "1.010308804982221000",
+      "asOf": "2026-11-27T08:00:00Z",
+      "share": {
+        "coin": "vsoUSDC",
+        "address": "0xdb408227e69aa7878391285222d378aff425eefc",
+        "decimals": 18
+      }
+    },
+    {
+      "fundId": "UNITREE",
+      "name": "UNITREE FUND",
+      "fundType": "escrow_vault",
+      "fundStatus": "live",
+      "nav": "98.99865931410493813",
+      "aum": "202644.903112",
+      "asOf": "2026-11-27T09:32:23Z",
+      "share": {
+        "coin": "aUNITREE",
+        "address": "0x67531aef9ce1ad5af176d0940bb8dfb0e1c1ecbe",
+        "decimals": 18
+      }
+    },
+    {
+      "fundId": "vBOXX",
+      "name": "vBOXX Fund",
+      "fundType": "clob",
+      "fundStatus": "live",
+      "asOf": "2026-11-27T09:50:32Z",
+      "share": {
+        "coin": "vBOXX",
+        "address": "0x9066fd97cdadeaf9a88bbb0c053fe7e9127dc1ab",
+        "decimals": 8
+      },
+      "spot": {
+        "symbol": "vBOXX_vUSDC",
+        "symbolId": 36,
+        "displayName": "BOXX/USDC",
+        "quote": {
+          "coin": "vUSDC",
+          "decimals": 6
+        }
+      }
+    },
+    {
+      "fundId": "vQQQ",
+      "name": "QQQ Fund",
+      "fundType": "clob",
+      "fundStatus": "live",
+      "asOf": "2026-11-27T09:50:32Z",
+      "share": {
+        "coin": "vQQQ",
+        "address": "0x09e08d7b9e9483f51beba65e1fd702ec910b1ee5",
+        "decimals": 8
+      },
+      "spot": {
+        "symbol": "vQQQ_vUSDC",
+        "symbolId": 41,
+        "displayName": "QQQ/USDC",
+        "quote": {
+          "coin": "vUSDC",
+          "decimals": 6
+        }
+      }
+    },
+    {
+      "fundId": "vSCHD",
+      "name": "vSCHD Fund",
+      "fundType": "clob",
+      "fundStatus": "live",
+      "asOf": "2026-11-27T09:50:32Z",
+      "share": {
+        "coin": "vSCHD",
+        "address": "0x58d895da6563b9f35426dfbb075472541e986d1b",
+        "decimals": 8
+      },
+      "spot": {
+        "symbol": "vSCHD_vUSDC",
+        "symbolId": 37,
+        "displayName": "SCHD/USDC",
+        "quote": {
+          "coin": "vUSDC",
+          "decimals": 6
+        }
+      }
+    },
+    {
+      "fundId": "vSMH",
+      "name": "vSMH Fund",
+      "fundType": "clob",
+      "fundStatus": "live",
+      "asOf": "2026-11-27T09:50:32Z",
+      "share": {
+        "coin": "vSMH",
+        "address": "0x892164bb5bd46697b13cc4d9eb3d4f1e1297d6d9",
+        "decimals": 8
+      },
+      "spot": {
+        "symbol": "vSMH_vUSDC",
+        "symbolId": 40,
+        "displayName": "SMH/USDC",
+        "quote": {
+          "coin": "vUSDC",
+          "decimals": 6
+        }
+      }
+    },
+    {
+      "fundId": "vSTRC",
+      "name": "vSTRC Fund",
+      "fundType": "clob",
+      "fundStatus": "live",
+      "asOf": "2026-11-27T09:50:32Z",
+      "share": {
+        "coin": "vSTRC",
+        "address": "0x7c6d088b7659a1116750c50abc56758764b3b799",
+        "decimals": 8
+      },
+      "spot": {
+        "symbol": "vSTRC_vUSDC",
+        "symbolId": 43,
+        "displayName": "STRC/USDC",
+        "quote": {
+          "coin": "vUSDC",
+          "decimals": 6
+        }
+      }
+    },
+    {
+      "fundId": "vVGT",
+      "name": "vVGT Fund",
+      "fundType": "clob",
+      "fundStatus": "live",
+      "asOf": "2026-11-27T09:50:32Z",
+      "share": {
+        "coin": "vVGT",
+        "address": "0xd4847c5db80d666d3cc36f5d65d53139202e9fbd",
+        "decimals": 8
+      },
+      "spot": {
+        "symbol": "vVGT_vUSDC",
+        "symbolId": 42,
+        "displayName": "VGT/USDC",
+        "quote": {
+          "coin": "vUSDC",
+          "decimals": 6
+        }
+      }
+    },
+    {
+      "fundId": "vVOO",
+      "name": "vVOO Fund",
+      "fundType": "clob",
+      "fundStatus": "live",
+      "asOf": "2026-11-27T09:50:32Z",
+      "share": {
+        "coin": "vVOO",
+        "address": "0x9bd27273bcc34f5b6b25485bd42cf267c86c042b",
+        "decimals": 8
+      },
+      "spot": {
+        "symbol": "vVOO_vUSDC",
+        "symbolId": 39,
+        "displayName": "VOO/USDC",
+        "quote": {
+          "coin": "vUSDC",
+          "decimals": 6
+        }
+      }
+    },
+    {
+      "fundId": "vVYM",
+      "name": "vVYM Fund",
+      "fundType": "clob",
+      "fundStatus": "live",
+      "asOf": "2026-11-27T09:50:32Z",
+      "share": {
+        "coin": "vVYM",
+        "address": "0x6b3dcb9788ac4776c6d1d5f847c687e249466623",
+        "decimals": 8
+      },
+      "spot": {
+        "symbol": "vVYM_vUSDC",
+        "symbolId": 38,
+        "displayName": "VYM/USDC",
+        "quote": {
+          "coin": "vUSDC",
+          "decimals": 6
+        }
+      }
+    }
+  ]
+}

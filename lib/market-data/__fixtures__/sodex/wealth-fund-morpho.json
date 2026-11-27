@@ -1,0 +1,21 @@
+{
+  "_captured_at": "2026-11-27T09:50:38.712Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/wealth/funds/Morpho-Earn",
+  "code": 0,
+  "timestamp": 1795773038569,
+  "data": {
+    "fundId": "Morpho-Earn",
+    "name": "SoSoValue x Unified Labs USDC",
+    "fundType": "bridged_vault",
+    "fundStatus": "live",
+    "nav": "1.010308804982221000",
+    "asOf": "2026-11-27T08:00:00Z",
+    "share": {
+      "coin": "vsoUSDC",
+      "address": "0xdb408227e69aa7878391285222d378aff425eefc",
+      "decimals": 18
+    },
+    "contracts": {},
+    "chainConfig": null
+  }
+}

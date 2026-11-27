@@ -9,7 +9,7 @@ export type DataSourceKind = "live" | "cached" | "demo";
 export interface DataProvenance {
   /** live = fetched from provider for this request; cached = previously fetched, still within TTL or served stale after a failure; demo = deterministic fixture, not real-time. */
   kind: DataSourceKind;
-  provider: "sosovalue" | "sodex" | "fixture";
+  provider: "sosovalue" | "sodex" | "sodex-wealth" | "sodex-rewards" | "fixture";
   sourceUrl: string;
   /** ISO 8601, when the data was pulled from the provider (or when the fixture was captured). */
   fetchedAt: string;
@@ -93,7 +93,9 @@ export interface OrderBookLevel {
 }
 
 export interface OrderBookSnapshot {
-  market: string; // e.g. "vBTC_vUSDC"
+  market: string; // spot "vBTC_vUSDC"; perps are addressed as "perps:ANT-USD"
+  /** spot (default) or perps; perps books are read-only teaching material, never traded */
+  marketType?: "spot" | "perps";
   displayName: string; // e.g. "BTC/USDC"
   baseAsset: string;
   quoteAsset: string;
@@ -121,4 +123,12 @@ export interface EvidencePack {
   etfFlows: EtfFlowSeries[];
   indexes: IndexSnapshot[];
   orderBooks: OrderBookSnapshot[];
+  /** SoDEX Wealth (optional; older scenarios do not have it) */
+  wealthFunds?: import("./wealth").WealthFund[];
+  wealthQuotes?: import("./wealth").WealthQuote[];
+  wealthPrices?: import("./wealth").WealthPriceSeries[];
+  dcaSimulations?: import("./wealth").DcaSimulation[];
+  /** SoDEX Rewards public data (optional) */
+  rewardIncentives?: import("./wealth").RewardsIncentives | null;
+  rewardFeed?: import("./wealth").RewardFeed | null;
 }

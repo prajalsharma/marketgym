@@ -1,0 +1,450 @@
+{
+  "_captured_at": "2026-11-27T09:50:44.810Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/lottery/feed",
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "minLevel": "Common",
+    "items": [
+      {
+        "kind": "open",
+        "tsMs": 1795704932644,
+        "wallet": "0x7907....d8d3",
+        "level": "Common",
+        "tokenId": 192250,
+        "rewardUsd": "1.00",
+        "reward": {
+          "asset": {
+            "address": "0xdb408227e69aa7878391285222d378aff425eefc",
+            "symbol": "vsoUSDC",
+            "decimals": 18
+          },
+          "amount": "1.000000000000000000",
+          "amountRaw": "1000000000000000000"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795679803624,
+        "wallet": "0x5395....d84b",
+        "level": "Rare",
+        "tokenId": 196994,
+        "rewardUsd": "198.85",
+        "reward": {
+          "asset": {
+            "address": "0xdb408227e69aa7878391285222d378aff425eefc",
+            "symbol": "vsoUSDC",
+            "decimals": 18
+          },
+          "amount": "198.850000000000000000",
+          "amountRaw": "198850000000000000000"
+        }
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795689808614,
+        "wallet": "0x1628....29da",
+        "level": "Common",
+        "tokenId": 191290,
+        "rewardUsd": "1.00",
+        "reward": {
+          "asset": {
+            "address": "0xdb408227e69aa7878391285222d378aff425eefc",
+            "symbol": "vsoUSDC",
+            "decimals": 18
+          },
+          "amount": "1.000000000000000000",
+          "amountRaw": "1000000000000000000"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795682443615,
+        "wallet": "0xe239....18b4",
+        "level": "Common",
+        "tokenId": 196633,
+        "rewardUsd": "1.00",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.01207875",
+          "amountRaw": "1207875"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795542426595,
+        "wallet": "0x67fc....c7a0",
+        "level": "Rare",
+        "tokenId": 196136,
+        "rewardUsd": "110.89",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.99452914",
+          "amountRaw": "99452914"
+        }
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795621043615,
+        "wallet": "0x05d8....389e",
+        "level": "Uncommon",
+        "tokenId": 196519,
+        "rewardUsd": "10.55",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.09461883",
+          "amountRaw": "9461883"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795186687627,
+        "wallet": "0x15a1....34a7",
+        "level": "Rare",
+        "tokenId": 192500,
+        "rewardUsd": "929.57",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "8.33695067",
+          "amountRaw": "833695067"
+        }
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795620982638,
+        "wallet": "0x05d8....389e",
+        "level": "Uncommon",
+        "tokenId": 196488,
+        "rewardUsd": "10.41",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.09336322",
+          "amountRaw": "9336322"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795620926622,
+        "wallet": "0x05d8....389e",
+        "level": "Uncommon",
+        "tokenId": 192609,
+        "rewardUsd": "10.59",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.09497757",
+          "amountRaw": "9497757"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795184861625,
+        "wallet": "0x05d8....389e",
+        "level": "Uncommon",
+        "tokenId": 186486,
+        "rewardUsd": "163.71",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "1.46825112",
+          "amountRaw": "146825112"
+        }
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795620609611,
+        "wallet": "0x4e60....aa91",
+        "level": "Common",
+        "tokenId": 194669,
+        "rewardUsd": "1.00",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.00896860",
+          "amountRaw": "896860"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795126931618,
+        "wallet": "0x1b1a....e3da",
+        "level": "Rare",
+        "tokenId": 189175,
+        "rewardUsd": "197.29",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "1.76941704",
+          "amountRaw": "176941704"
+        }
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795620151643,
+        "wallet": "0x4e60....aa91",
+        "level": "Common",
+        "tokenId": 189938,
+        "rewardUsd": "1.00",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.00896860",
+          "amountRaw": "896860"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795124492577,
+        "wallet": "0x83ca....4998",
+        "level": "Rare",
+        "tokenId": 189326,
+        "rewardUsd": "110.91",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.99470852",
+          "amountRaw": "99470852"
+        }
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795620047665,
+        "wallet": "0x4e60....aa91",
+        "level": "Uncommon",
+        "tokenId": 192686,
+        "rewardUsd": "10.35",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.09282511",
+          "amountRaw": "9282511"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795090679602,
+        "wallet": "0x8518....34c2",
+        "level": "SuperRare",
+        "tokenId": 189851,
+        "rewardUsd": "435.87",
+        "reward": {
+          "asset": {
+            "address": "0xdb408227e69aa7878391285222d378aff425eefc",
+            "symbol": "vsoUSDC",
+            "decimals": 18
+          },
+          "amount": "435.870000000000000000",
+          "amountRaw": "435870000000000000000"
+        }
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795620033646,
+        "wallet": "0xcd36....3ff7",
+        "level": "Common",
+        "tokenId": 189913,
+        "rewardUsd": "1.00",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.00896860",
+          "amountRaw": "896860"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795068351731,
+        "wallet": "0x3fab....211d",
+        "level": "Rare",
+        "tokenId": 189849,
+        "rewardUsd": "204.20",
+        "reward": {
+          "asset": {
+            "address": "0xdb408227e69aa7878391285222d378aff425eefc",
+            "symbol": "vsoUSDC",
+            "decimals": 18
+          },
+          "amount": "204.200000000000000000",
+          "amountRaw": "204200000000000000000"
+        }
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795618110624,
+        "wallet": "0x30c7....d4e1",
+        "level": "Common",
+        "tokenId": 189751,
+        "rewardUsd": "1.00",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.00896860",
+          "amountRaw": "896860"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1794957958384,
+        "wallet": "0x08b3....66d8",
+        "level": "Uncommon",
+        "tokenId": 189344,
+        "rewardUsd": "150.60",
+        "reward": {
+          "asset": {
+            "address": "0xdb408227e69aa7878391285222d378aff425eefc",
+            "symbol": "vsoUSDC",
+            "decimals": 18
+          },
+          "amount": "150.600000000000000000",
+          "amountRaw": "150600000000000000000"
+        }
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795565456616,
+        "wallet": "0xfcc2....86d1",
+        "level": "Uncommon",
+        "tokenId": 196192,
+        "rewardUsd": "10.32",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.09255605",
+          "amountRaw": "9255605"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795534924611,
+        "wallet": "0x77ab....8ee5",
+        "level": "Common",
+        "tokenId": 196099,
+        "rewardUsd": "1.00",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.00896860",
+          "amountRaw": "896860"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1794955389378,
+        "wallet": "0x0ab8....ce39",
+        "level": "Rare",
+        "tokenId": 189331,
+        "rewardUsd": "109.45",
+        "reward": {
+          "asset": {
+            "address": "0xdb408227e69aa7878391285222d378aff425eefc",
+            "symbol": "vsoUSDC",
+            "decimals": 18
+          },
+          "amount": "109.450000000000000000",
+          "amountRaw": "109450000000000000000"
+        }
+      },
+      {
+        "kind": "open",
+        "tsMs": 1795534376599,
+        "wallet": "0x77e8....0db9",
+        "level": "Rare",
+        "tokenId": 194318,
+        "rewardUsd": "107.72",
+        "reward": {
+          "asset": {
+            "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+            "symbol": "vANT",
+            "decimals": 8
+          },
+          "amount": "0.96609865",
+          "amountRaw": "96609865"
+        },
+        "pfp": true
+      },
+      {
+        "kind": "open",
+        "tsMs": 1794918376379,
+        "wallet": "0x3fab....211d",
+        "level": "Rare",
+        "tokenId": 189004,
+        "rewardUsd": "111.12",
+        "reward": {
+          "asset": {
+            "address": "0xdb408227e69aa7878391285222d378aff425eefc",
+            "symbol": "vsoUSDC",
+            "decimals": 18
+          },
+          "amount": "111.120000000000000000",
+          "amountRaw": "111120000000000000000"
+        }
+      }
+    ]
+  }
+}

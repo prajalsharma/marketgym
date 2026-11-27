@@ -1,0 +1,37 @@
+{
+  "_captured_at": "2026-11-27T09:50:46.346Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/spot/markets/symbols?symbol=vANT_vUSDC",
+  "code": 0,
+  "timestamp": 1795773046261,
+  "data": [
+    {
+      "id": 44,
+      "name": "vANT_vUSDC",
+      "displayName": "ANT/USDC",
+      "baseCoinID": 49,
+      "baseCoin": "vANT",
+      "baseCoinPrecision": 8,
+      "quoteCoinID": 0,
+      "quoteCoin": "vUSDC",
+      "quoteCoinPrecision": 6,
+      "pricePrecision": 2,
+      "tickSize": "0.01",
+      "minPrice": "0.01",
+      "maxPrice": "0",
+      "quantityPrecision": 3,
+      "stepSize": "0.001",
+      "minQuantity": "0.001",
+      "maxQuantity": "0",
+      "marketMinQuantity": "0.001",
+      "marketMaxQuantity": "0",
+      "minNotional": "5",
+      "maxNotional": "0",
+      "buyLimitUpRatio": "1",
+      "sellLimitDownRatio": "0.5",
+      "marketDeviationRatio": "0.1",
+      "makerFee": "0.00035",
+      "takerFee": "0.00065",
+      "status": "TRADING"
+    }
+  ]
+}

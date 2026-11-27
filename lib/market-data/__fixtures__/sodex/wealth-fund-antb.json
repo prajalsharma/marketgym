@@ -1,0 +1,32 @@
+{
+  "_captured_at": "2026-11-27T09:50:37.406Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/wealth/funds/antb",
+  "code": 0,
+  "timestamp": 1795773037210,
+  "data": {
+    "fundId": "antb",
+    "name": "ANT Believers Index",
+    "fundType": "ssi-v2",
+    "fundStatus": "live",
+    "nav": "9.6234574440422935",
+    "asOf": "2026-11-27T09:49:58Z",
+    "share": {
+      "coin": "ANTB.ssi",
+      "address": "0x1b0c2d25f432280882ffbd7da4f5b0597ecc3139",
+      "decimals": 18
+    },
+    "contracts": {
+      "asset": "0xcb7f80dff2727c791fa491722c428e6657f7e2c6"
+    },
+    "chainConfig": {
+      "assetDecimals": 6,
+      "minDeposit": "",
+      "minRedeemShares": "",
+      "mgmtFeeRate": "",
+      "perfFeeRate": "",
+      "exchangeRate": "",
+      "paused": false,
+      "asOfBlock": 0
+    }
+  }
+}

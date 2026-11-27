@@ -1,0 +1,76 @@
+{
+  "_captured_at": "2026-11-27T09:50:43.236Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/sopoints/volume-weights",
+  "code": 0,
+  "message": "",
+  "data": {
+    "activity_id": 6,
+    "round": {
+      "round_id": 13,
+      "start_ts_ms": 1795521600000,
+      "end_ts_ms": 1796126400000
+    },
+    "weights": [
+      {
+        "market_type": "perps",
+        "symbol_id": 54,
+        "symbol": "NVDA-USD",
+        "coefficient": "1.2"
+      },
+      {
+        "market_type": "perps",
+        "symbol_id": 56,
+        "symbol": "GOOGL-USD",
+        "coefficient": "1.2"
+      },
+      {
+        "market_type": "perps",
+        "symbol_id": 57,
+        "symbol": "AMZN-USD",
+        "coefficient": "1.2"
+      },
+      {
+        "market_type": "perps",
+        "symbol_id": 70,
+        "symbol": "CL-USD",
+        "coefficient": "1.2"
+      },
+      {
+        "market_type": "perps",
+        "symbol_id": 88,
+        "symbol": "UNITREE-USD",
+        "coefficient": "1.2"
+      },
+      {
+        "market_type": "perps",
+        "symbol_id": 94,
+        "symbol": "NBIS-USD",
+        "coefficient": "1.2"
+      },
+      {
+        "market_type": "perps",
+        "symbol_id": 100,
+        "symbol": "BRENTOIL-USD",
+        "coefficient": "1.2"
+      },
+      {
+        "market_type": "perps",
+        "symbol_id": 104,
+        "symbol": "CRWV-USD",
+        "coefficient": "1.2"
+      },
+      {
+        "market_type": "perps",
+        "symbol_id": 106,
+        "symbol": "ANT-USD",
+        "coefficient": "1.2"
+      },
+      {
+        "market_type": "perps",
+        "symbol_id": 107,
+        "symbol": "TTWO-USD",
+        "coefficient": "1.2"
+      }
+    ]
+  }
+}

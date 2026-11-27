@@ -180,3 +180,67 @@ export async function evaluateAttempt(input: { scenario: Scenario; answer: strin
 - `scheduleReview(record, now, existing?)` takes the skill's reviews as an optional third argument.
 - Auth routes: `POST /api/auth/signup|login|logout` (local mode returns `{ mode: "local", redirectTo }`).
 - Production refuses local mode unless `ALLOW_LOCAL_MODE=true`.
+
+## Wave 2: SoDEX Wealth, Rewards, ANT markets, practice portfolio (frozen 2026-11-27)
+
+Types: `lib/types/wealth.ts`. Real captured responses: `lib/market-data/__fixtures__/sodex/{wealth-*,rewards-*,mainnet-perps-*,mainnet-spot-*vANT*}.json`. Docs: https://docs.sodex.com/for-developers/developers/wealth.md, .../rewards.md (append `.md` to any docs page).
+
+**Hard rule: wallet-free and read-only.** Only public GETs: `/api/v1/wealth/funds`, `/wealth/funds/{id}`, `/wealth/markets`, `/wealth/funds/{id}/price-history`, `/wealth/funds/{id}/dca-history`, `/api/v1/sopoints/volume-weights`, `/sopoints/week/info`, `/api/v1/lottery/meta`, `/lottery/feed`, `/api/v1/{spot|perps}/markets/*`. Never auth/nonce/verify, deposits, redemptions, RFQ, orders, claims, signatures.
+
+**Units:** wealth `/markets` changePct/roi*/apy* are already percent; `/dca-history` returnRate is a FRACTION (×100). Normalised types are always percent.
+
+### Market ids
+Spot: `vBTC_vUSDC`, `vETH_vUSDC`, `vANT_vUSDC`. Perps: `perps:ANT-USD` (UI label "ANT-USD perpetual"). `OrderBookService.get(market)` accepts both.
+
+### Evidence tokens (ExerciseTemplate.evidenceRequirements)
+Existing tokens plus:
+```
+orderbook:vANT_vUSDC         orderbook:perps:ANT-USD
+wealth:board                 (all funds + quotes)
+wealth:fund:<fundId>         (fund + quote, e.g. wealth:fund:antb)
+wealth:price:<fundId>:<range> (e.g. wealth:price:vQQQ:3M)
+wealth:dca:<fundId>:<range>  (e.g. wealth:dca:vVOO:1Y)
+rewards:incentives           rewards:feed
+```
+
+### New skills (module `wealth`, sequence 7, prerequisites `etf`, `indexes`)
+```
+wealth.fund-types        wealth.nav-vs-price      wealth.fees
+wealth.yield-apy         wealth.dca               wealth.diversification
+wealth.incentives        (how trading rewards / points multipliers distort volume)
+```
+New skills in existing modules: `markets.trading-hours` (module markets), `orderbook.spot-vs-perps` (module orderbook), `indexes.index-nav` (module indexes).
+
+New misconceptions (min): `past-return-predicts`, `apy-is-guaranteed`, `nav-equals-price`, `dca-always-wins`, `incentive-volume-is-demand`, `feed-shows-typical-reward`, `more-funds-is-diversified`, `fees-dont-matter`, `perps-price-is-spot-price`, `stale-price-is-current`.
+
+### Routes (new)
+```
+GET  /api/market/wealth                         WealthBoardResponse           public, rate-limited
+GET  /api/market/wealth/[fundId]                WealthFundResponse            public
+GET  /api/market/wealth/[fundId]/prices?range=  WealthPriceHistoryResponse    public (range 1W|1M|3M|1Y)
+GET  /api/market/wealth/[fundId]/dca?range=     WealthDcaResponse             public (range 3M|6M|1Y)
+GET  /api/market/rewards                        RewardsResponse               public
+GET  /api/market/orderbook?market=perps:ANT-USD (existing route, now accepts perps ids)
+GET  /api/portfolio                             PortfolioResponse[]           learner
+POST /api/portfolio                             PortfolioUpsertRequest -> PortfolioResponse   learner (create)
+PUT  /api/portfolio/[id]                        PortfolioUpsertRequest -> PortfolioResponse   learner
+POST /api/portfolio/[id]/review                 -> PortfolioReviewResponse   learner (grades rationale)
+```
+Portfolio validation: 1–8 holdings, unique known fundIds, integer weights 1..100 summing to 100, rationale 40..4000 chars, name 1..80.
+
+### Services (new; owners in AGENT_OWNERSHIP)
+```ts
+// lib/market-data (backend)
+WealthDataService: getBoard(): {funds,quotes}; getFund(id); getPriceHistory(id, range); getDca(id, range)
+RewardsDataService: getIncentives(): RewardsIncentives; getFeed(): RewardFeed
+OrderBookService.get("perps:ANT-USD") supported
+buildEvidencePack(requirements) understands the new tokens
+// lib/learning (AI/learning)
+analysePortfolio(portfolio, ctx: { funds: WealthFund[]; quotes: WealthQuote[]; dca: DcaSimulation[] }): PortfolioAnalysis   // pure, deterministic
+portfolioScenario(portfolio, analysis, evidence: EvidencePack, id): Scenario   // wraps template "ex.wealth.portfolio-review" so evaluateAttempt grades the rationale
+// orderbook exercise kind "spot-vs-perps" added to OrderBookExerciseKind usage (string literal union widened)
+```
+TTLs: wealth board 60 s, fund detail 10 min, price history 30 min, dca 6 h, rewards incentives 10 min, feed 5 min, perps book 15 s.
+
+### Screens (new)
+`/app/wealth` (Wealth lab: fund board, fund detail drawer with price chart + DCA chart, market status, provenance), `/app/portfolio` (practice portfolio builder + analysis + graded rationale), Order book gym gains ANT spot + ANT-USD perpetual and the spot-vs-perps exercise, scenario lab renders wealth/rewards evidence cards. Nav adds "Wealth lab" and "Practice portfolio".

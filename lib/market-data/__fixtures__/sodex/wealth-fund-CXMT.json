@@ -1,0 +1,42 @@
+{
+  "_captured_at": "2026-11-27T09:50:38.090Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/wealth/funds/CXMT",
+  "code": 0,
+  "timestamp": 1795773037899,
+  "data": {
+    "fundId": "CXMT",
+    "name": "CXMT",
+    "fundType": "escrow_vault",
+    "fundStatus": "live",
+    "nav": "4.937955756657073554",
+    "aum": "18066.980495",
+    "asOf": "2026-11-27T08:45:16Z",
+    "share": {
+      "coin": "aCXMT",
+      "address": "0x9876b381a94876ea8fea56b625e15556fb450629",
+      "decimals": 18
+    },
+    "contracts": {
+      "vault": "0x9876b381a94876ea8fea56b625e15556fb450629",
+      "market": "0xfc1ffe2f3c39a2c126d26dcd45d03439e491ecec",
+      "asset": "0xcb7f80dff2727c791fa491722c428e6657f7e2c6",
+      "subscription": "0xecb74e25a87fe8793175894ebac01c72677f13b8"
+    },
+    "chainConfig": {
+      "assetDecimals": 6,
+      "minDeposit": "1",
+      "minRedeemShares": "0.5",
+      "mgmtFeeRate": "0",
+      "perfFeeRate": "0",
+      "exchangeRate": "4937955756657073554",
+      "paused": false,
+      "asOfBlock": 17447073
+    },
+    "subscription": {
+      "subscribeDeadline": 1785803400,
+      "unsubscribeDeadline": 1785112200,
+      "totalSubscribed": "181692.07",
+      "minimumSubscribeAmount": "0"
+    }
+  }
+}

@@ -6,6 +6,7 @@
  * by userId; implementations must never return another user's rows.
  */
 import type {
+  PaperPortfolio,
   ActivityEvent,
   CoachSession,
   DiagnosticResult,
@@ -52,6 +53,11 @@ export interface Repository {
   // activity
   logActivity(event: ActivityEvent): Promise<ActivityEvent>;
   listActivity(userId: string, limit: number): Promise<ActivityEvent[]>;
+
+  // practice (paper) portfolios: no real money, no wallet
+  savePortfolio(p: PaperPortfolio): Promise<PaperPortfolio>;
+  getPortfolio(userId: string, id: string): Promise<PaperPortfolio | null>;
+  listPortfolios(userId: string): Promise<PaperPortfolio[]>;
 
   // knowledge-check history (for memory + learning engine)
   saveKnowledgeCheckResult(r: KnowledgeCheckResult): Promise<KnowledgeCheckResult>;

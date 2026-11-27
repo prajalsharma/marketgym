@@ -18,6 +18,17 @@ import type {
 } from "./learning";
 import type { Curriculum, KnowledgeCheck, Module, Skill } from "./curriculum";
 import type {
+  DcaSimulation,
+  PaperPortfolio,
+  PortfolioAnalysis,
+  PortfolioHolding,
+  RewardFeed,
+  RewardsIncentives,
+  WealthFund,
+  WealthPriceSeries,
+  WealthQuote,
+} from "./wealth";
+import type {
   EtfFlowSeries,
   IndexSnapshot,
   MarketSnapshot,
@@ -183,3 +194,37 @@ export type ProgressReviewsResponse = Review[];
 export type ProgressAttemptsResponse = ScenarioAttempt[];
 
 export type Infer<T extends z.ZodTypeAny> = z.infer<T>;
+
+// ---- SoDEX Wealth / Rewards (public, read-only) ----
+export interface WealthBoardResponse {
+  funds: WealthFund[];
+  quotes: WealthQuote[];
+}
+export type WealthFundResponse = WealthFund & { quote: WealthQuote | null };
+export type WealthPriceHistoryResponse = WealthPriceSeries;
+export type WealthDcaResponse = DcaSimulation;
+export interface RewardsResponse {
+  incentives: RewardsIncentives;
+  feed: RewardFeed;
+}
+
+// ---- Practice (paper) portfolio ----
+export interface PortfolioUpsertRequest {
+  name: string;
+  holdings: PortfolioHolding[];
+  strategy: PaperPortfolio["strategy"];
+  rationale: string;
+}
+export interface PortfolioResponse {
+  portfolio: PaperPortfolio;
+  analysis: PortfolioAnalysis;
+}
+export interface PortfolioReviewResponse {
+  portfolio: PaperPortfolio;
+  analysis: PortfolioAnalysis;
+  /** the rationale graded by the standard evaluator against the portfolio exercise rubric */
+  attempt: ScenarioAttempt;
+  evaluation: Evaluation;
+  masteryUpdates: MasteryRecord[];
+  nextMission: NextMission;
+}

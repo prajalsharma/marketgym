@@ -1,0 +1,114 @@
+{
+  "_captured_at": "2026-11-27T09:50:42.101Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/wealth/funds/vVOO/dca-history?range=1Y",
+  "code": 0,
+  "timestamp": 1795773041947,
+  "data": {
+    "fundId": "vVOO",
+    "range": "1Y",
+    "returnRate": "0.005776154789670949",
+    "points": [
+      {
+        "tradeDate": "2025-12-01",
+        "returnRate": "0.000000000000000000"
+      },
+      {
+        "tradeDate": "2025-12-08",
+        "returnRate": "0.002469945005755256"
+      },
+      {
+        "tradeDate": "2025-12-15",
+        "returnRate": "-0.001170745214783264"
+      },
+      {
+        "tradeDate": "2025-12-22",
+        "returnRate": "0.005766518595255695"
+      },
+      {
+        "tradeDate": "2025-12-29",
+        "returnRate": "0.008280246662358351"
+      },
+      {
+        "tradeDate": "2026-01-05",
+        "returnRate": "0.006714254405199816"
+      },
+      {
+        "tradeDate": "2026-01-12",
+        "returnRate": "0.015141815511432176"
+      },
+      {
+        "tradeDate": "2026-01-20",
+        "returnRate": "-0.009244033622242896"
+      },
+      {
+        "tradeDate": "2026-01-26",
+        "returnRate": "0.011483903279367778"
+      },
+      {
+        "tradeDate": "2026-02-02",
+        "returnRate": "0.014036354243154691"
+      },
+      {
+        "tradeDate": "2026-02-09",
+        "returnRate": "0.010670708036701130"
+      },
+      {
+        "tradeDate": "2026-02-17",
+        "returnRate": "-0.005082797040298205"
+      },
+      {
+        "tradeDate": "2026-02-23",
+        "returnRate": "-0.005218283838036139"
+      },
+      {
+        "tradeDate": "2026-03-02",
+        "returnRate": "0.000526404674662670"
+      },
+      {
+        "tradeDate": "2026-03-09",
+        "returnRate": "-0.010573522863096836"
+      },
+      {
+        "tradeDate": "2026-03-16",
+        "returnRate": "-0.022715702443915005"
+      },
+      {
+        "tradeDate": "2026-03-23",
+        "returnRate": "-0.037467222699329592"
+      },
+      {
+        "tradeDate": "2026-03-30",
+        "returnRate": "-0.067971018339107969"
+      },
+      {
+        "tradeDate": "2026-04-06",
+        "returnRate": "-0.026790447639226067"
+      },
+      {
+        "tradeDate": "2026-04-13",
+        "returnRate": "0.012787644132511087"
+      },
+      {
+        "tradeDate": "2026-04-20",
+        "returnRate": "0.044018720340919933"
+      },
+      {
+        "tradeDate": "2026-04-27",
+        "returnRate": "0.051133990315759135"
+      },
+      {
+        "tradeDate": "2026-05-04",
+        "returnRate": "0.052917211646173304"
+      },
+      {
+        "tradeDate": "2026-05-11",
+        "returnRate": "0.080366763121956200"
+      },
+      {
+        "tradeDate": "2026-05-18",
+        "returnRate": "0.076221048953794088"
+      }
+    ],
+    "ready": true
+  }
+}

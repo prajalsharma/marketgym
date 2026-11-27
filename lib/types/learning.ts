@@ -185,7 +185,8 @@ export type ActivityKind =
   | "scenario"
   | "orderbook"
   | "review"
-  | "coach";
+  | "coach"
+  | "portfolio";
 
 export interface ActivityEvent {
   id: string;
@@ -225,7 +226,8 @@ export type OrderBookExerciseKind =
   | "interpret-depth"
   | "compare-liquidity"
   | "recognise-imbalance"
-  | "price-time-priority";
+  | "price-time-priority"
+  | "spot-vs-perps";
 
 export interface OrderBookExerciseQuestion {
   id: string;

@@ -1,0 +1,41 @@
+{
+  "_captured_at": "2026-11-27T09:50:42.808Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/wealth/funds/antb/price-history?interval=1d&range=1M&type=line",
+  "code": 0,
+  "timestamp": 1795773042571,
+  "data": {
+    "fundId": "antb",
+    "symbol": "ANTB.ssi",
+    "interval": "1d",
+    "range": "1M",
+    "type": "line",
+    "points": [
+      {
+        "ts": "2026-11-22T00:00:00Z",
+        "close": "9.3774362479629504"
+      },
+      {
+        "ts": "2026-11-23T00:00:00Z",
+        "close": "9.8355391966785145"
+      },
+      {
+        "ts": "2026-11-24T00:00:00Z",
+        "close": "9.4507174296791177"
+      },
+      {
+        "ts": "2026-11-25T00:00:00Z",
+        "close": "9.3667070853456616"
+      },
+      {
+        "ts": "2026-11-26T00:00:00Z",
+        "close": "9.3947449430456208"
+      },
+      {
+        "ts": "2026-11-27T00:00:00Z",
+        "close": "9.6234574440422935"
+      }
+    ],
+    "candles": [],
+    "truncated": false
+  }
+}

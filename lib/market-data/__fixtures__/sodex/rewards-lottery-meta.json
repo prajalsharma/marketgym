@@ -1,0 +1,105 @@
+{
+  "_captured_at": "2026-11-27T09:50:44.379Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/lottery/meta",
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "contracts": {
+      "treasureBox": "0x371c4F7F68bE3e558b89cC1f0fB113851C76E750",
+      "distribute": "0x8517C546d124F57c6e9BBC714979149Cd0b54167",
+      "pfp": "0xCD30D4bCaa99E556B70A2C4bDFC4050D26E48D30"
+    },
+    "rewardToken": {
+      "asset": {
+        "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+        "symbol": "vANT",
+        "decimals": 8
+      },
+      "priceUsd": "82.79",
+      "videoUrl": "https://static.sosovalue.com/2026/11/19/399f0673-ec46-42fb-8490-cdcc8db49410.mp4",
+      "destination": "spot"
+    },
+    "rewardTokens": [
+      {
+        "asset": {
+          "address": "0xa72bd95411413ac31ddf61e462091f45f66c85f2",
+          "symbol": "vANT",
+          "decimals": 8
+        },
+        "priceUsd": "82.79",
+        "videoUrl": "https://static.sosovalue.com/2026/11/19/399f0673-ec46-42fb-8490-cdcc8db49410.mp4",
+        "destination": "spot"
+      },
+      {
+        "asset": {
+          "address": "0xdb408227e69aa7878391285222d378aff425eefc",
+          "symbol": "vsoUSDC",
+          "decimals": 18
+        },
+        "priceUsd": "1",
+        "videoUrl": "https://static.sosovalue.com/2026/10/20/9b68433b-0424-4a89-889c-995505bf4891.mp4",
+        "destination": "perp"
+      }
+    ],
+    "rules": {
+      "volumePerBoxU": 10000,
+      "takerWeightBps": 10000,
+      "makerWeightBps": 2000,
+      "newcomerMaxUAtBound": 10000,
+      "maxTradeBoxesPerWallet": null,
+      "milestones": [
+        {
+          "thresholdU": 10000,
+          "beneficiary": "self",
+          "level": "Common"
+        },
+        {
+          "thresholdU": 30000,
+          "beneficiary": "inviter",
+          "level": "Common"
+        },
+        {
+          "thresholdU": 200000,
+          "beneficiary": "inviter",
+          "level": "Uncommon"
+        }
+      ],
+      "rewardBands": [
+        {
+          "level": "Common",
+          "minUsd": "1.00",
+          "maxUsd": "8.00"
+        },
+        {
+          "level": "Uncommon",
+          "minUsd": "10.20",
+          "maxUsd": "215.00"
+        },
+        {
+          "level": "Rare",
+          "minUsd": "103.00",
+          "maxUsd": "1325.00"
+        },
+        {
+          "level": "SuperRare",
+          "minUsd": "415.00",
+          "maxUsd": "10000.00"
+        }
+      ],
+      "mergeSize": {
+        "Common": 10,
+        "Rare": 4,
+        "SuperRare": 0,
+        "Uncommon": 10
+      },
+      "tradeBoxLevels": [
+        "Common",
+        "Uncommon"
+      ],
+      "limits": {
+        "maxTreasureOpen": 100,
+        "maxBoxOpen": 30
+      }
+    }
+  }
+}

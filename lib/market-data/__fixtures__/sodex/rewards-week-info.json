@@ -1,0 +1,14 @@
+{
+  "_captured_at": "2026-11-27T09:50:43.739Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/sopoints/week/info",
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "weekNo": 13,
+    "weekName": "Week 13",
+    "weekStatus": "LIVE",
+    "weekPoolPoints": 1000000,
+    "nextWeekStartTime": 1796126400,
+    "distributionTime": 1796385600
+  }
+}
