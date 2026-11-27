@@ -32,6 +32,11 @@ export async function signSessionToken(userId: string, secret: string, now = new
 
 /** The user uuid from a valid session token, else null (bad signature, expired, malformed). */
 export async function verifySessionToken(token: string | undefined | null, secret: string | undefined | null, now?: Date): Promise<string | null> {
+  return (await verifySessionClaims(token, secret, now))?.userId ?? null;
+}
+
+/** Like verifySessionToken, plus the issue time so callers can honour sign-out revocation. */
+export async function verifySessionClaims(token: string | undefined | null, secret: string | undefined | null, now?: Date): Promise<{ userId: string; issuedAt: number } | null> {
   if (!token || !secret || secret.length < 32) return null;
   try {
     const { payload } = await jwtVerify(token, key(secret), {
@@ -40,7 +45,8 @@ export async function verifySessionToken(token: string | undefined | null, secre
       algorithms: ["HS256"],
       ...(now ? { currentDate: now } : {}),
     });
-    return typeof payload.sub === "string" && UUID.test(payload.sub) ? payload.sub : null;
+    if (typeof payload.sub !== "string" || !UUID.test(payload.sub) || typeof payload.iat !== "number") return null;
+    return { userId: payload.sub, issuedAt: payload.iat };
   } catch {
     return null;
   }

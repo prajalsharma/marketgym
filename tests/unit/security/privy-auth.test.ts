@@ -42,7 +42,14 @@ const fakePg = {
     profiles.set(p.id, p);
     return p;
   },
+  async getSessionsValidAfter(id: string) {
+    return revokedAt.get(id) ?? null;
+  },
+  async revokeSessions(id: string) {
+    revokedAt.set(id, Math.floor(Date.now() / 1000));
+  },
 };
+const revokedAt = new Map<string, number>();
 vi.mock("@/lib/db", async (orig) => ({
   ...(await orig<typeof import("@/lib/db")>()),
   getPostgresRepositoryFromEnv: async () => fakePg,
@@ -258,6 +265,19 @@ describe("mg_session", () => {
     expect(await getCurrentUser()).toEqual({ id: USER, email: null });
     cookieJar.set("mg_session", "garbage");
     expect(await getCurrentUser()).toBeNull();
+  });
+
+  it("a session cookie issued before sign-out is refused, a later one works", async () => {
+    const { getCurrentUser } = await import("@/lib/auth/session");
+    const { signSessionToken } = await import("@/lib/auth/session-token");
+    const old = await signSessionToken(USER, SECRET, new Date(Date.now() - 60_000));
+    cookieJar.set("mg_session", old);
+    expect(await getCurrentUser()).toEqual({ id: USER, email: null });
+    await fakePg.revokeSessions(USER); // what /api/auth/logout does
+    expect(await getCurrentUser()).toBeNull(); // the copied cookie is dead
+    cookieJar.set("mg_session", await signSessionToken(USER, SECRET, new Date(Date.now() + 2_000)));
+    expect(await getCurrentUser()).toEqual({ id: USER, email: null });
+    revokedAt.delete(USER);
   });
 
   it("proxy redirects /app/* without a valid session to /login?next=…", async () => {

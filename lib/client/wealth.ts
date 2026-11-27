@@ -81,7 +81,7 @@ export type PriceRange = (typeof PRICE_RANGES)[number];
  * the millions of percent, usually from a tiny or newly seeded vault). We never
  * hide or change them; we show them flat, without animation, next to a plain note.
  */
-export const UNUSUAL_PCT_THRESHOLD = 1000;
+export const UNUSUAL_PCT_THRESHOLD = 300;
 export function isUnusualPct(v: number | null | undefined): boolean {
   return v !== null && v !== undefined && Number.isFinite(v) && Math.abs(v) >= UNUSUAL_PCT_THRESHOLD;
 }

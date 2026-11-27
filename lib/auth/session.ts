@@ -8,7 +8,7 @@
 import { getEnv } from "@/lib/config/env";
 import { ApiError } from "@/lib/server/api";
 import { LOCAL_USER, type AuthUser } from "./local";
-import { SESSION_COOKIE, verifySessionToken } from "./session-token";
+import { SESSION_COOKIE, verifySessionClaims } from "./session-token";
 
 export type { AuthUser } from "./local";
 
@@ -17,8 +17,13 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   if (env.authMode === "privy") {
     const { cookies } = await import("next/headers");
     const store = await cookies();
-    const userId = await verifySessionToken(store.get(SESSION_COOKIE)?.value, env.SESSION_SECRET);
-    return userId ? { id: userId, email: null } : null;
+    const claims = await verifySessionClaims(store.get(SESSION_COOKIE)?.value, env.SESSION_SECRET);
+    if (!claims) return null;
+    // a cookie copied before sign-out must stop working: compare with the user's revocation time
+    const { getPostgresRepositoryFromEnv } = await import("@/lib/db");
+    const validAfter = await (await getPostgresRepositoryFromEnv()).getSessionsValidAfter(claims.userId);
+    if (validAfter !== null && claims.issuedAt < validAfter) return null;
+    return { id: claims.userId, email: null };
   }
   if (env.authMode === "local") {
     // local mode = one shared learner with no login; never let it run silently in production

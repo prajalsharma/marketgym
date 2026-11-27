@@ -24,6 +24,8 @@ create table if not exists __SCHEMA__.users (
   display_name text,
   created_at timestamptz not null default now()
 );
+-- sign-out everywhere: session cookies issued before this moment are refused
+alter table __SCHEMA__.users add column if not exists sessions_valid_after timestamptz;
 
 create table if not exists __SCHEMA__.profiles (
   id uuid primary key references __SCHEMA__.users(id) on delete cascade,

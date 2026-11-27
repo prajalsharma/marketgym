@@ -56,14 +56,26 @@ export function consume(key: string, policy: RateLimitPolicy, now = Date.now()):
 
 function sweep(now: number, windowMs: number): void {
   for (const [k, b] of buckets) if (now - b.updatedAt > windowMs * 2) buckets.delete(k);
-  if (buckets.size >= MAX_BUCKETS) buckets.clear();
+  // still full: evict the oldest tenth (Map keeps insertion order) instead of
+  // clearing everything, so flooding with new keys cannot reset other limits
+  if (buckets.size >= MAX_BUCKETS) {
+    let drop = Math.ceil(MAX_BUCKETS / 10);
+    for (const k of buckets.keys()) {
+      if (drop-- <= 0) break;
+      buckets.delete(k);
+    }
+  }
 }
 
 export function clientIp(req: Request): string {
   const h = req.headers;
+  // Prefer headers the hosting platform sets itself (Vercel overwrites these, so a
+  // client cannot spoof them); the leftmost x-forwarded-for entry is the last resort.
+  const platform = h.get("x-vercel-forwarded-for") ?? h.get("x-real-ip") ?? h.get("cf-connecting-ip");
+  if (platform) return platform.split(",")[0]!.trim();
   const fwd = h.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0]!.trim();
-  return h.get("x-real-ip") ?? h.get("cf-connecting-ip") ?? "anonymous";
+  return "anonymous";
 }
 
 /**

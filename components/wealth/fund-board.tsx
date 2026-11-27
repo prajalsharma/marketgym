@@ -198,7 +198,7 @@ function BoardRow({ fund, quote, selected }: { fund: WealthFund; quote: WealthQu
         selected ? "bg-accent-soft" : "hover:bg-surface-raised",
       )}
     >
-      <th scope="row" className={cn(cell, "min-w-[10rem] text-left font-normal")}>
+      <th scope="row" className={cn(cell, "min-w-[8rem] text-left font-normal")}>
         <Link
           href={fundHref(fund.fundId)}
           scroll={false}
@@ -228,7 +228,7 @@ function BoardRow({ fund, quote, selected }: { fund: WealthFund; quote: WealthQu
         <PctValue value={ret.value} noteClassName="text-right" />
         <span className="block text-xs text-muted">{ret.label}</span>
       </td>
-      <td className={cn(cell, "min-w-[6.5rem]")}>
+      <td className={cn(cell, "whitespace-nowrap")}>
         {quote ? <StatusDot tone={marketStatusTone(quote.marketStatus)} label={MARKET_STATUS_LABEL[quote.marketStatus]} /> : "—"}
       </td>
     </tr>

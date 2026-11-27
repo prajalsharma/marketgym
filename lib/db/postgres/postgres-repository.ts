@@ -119,6 +119,20 @@ export class PostgresRepository implements Repository {
     return { user: u!, isNew: row.inserted === true };
   }
 
+  /** Unix seconds before which session cookies are refused (set at sign-out), or null. */
+  async getSessionsValidAfter(userId: string): Promise<number | null> {
+    const sql = await this.db();
+    const rows = await sql`select extract(epoch from sessions_valid_after)::float8 as t from users where id = ${userId}`;
+    if (rows.length === 0) return Number.POSITIVE_INFINITY; // unknown user: no session is valid
+    const t = (rows[0] as { t: number | null }).t;
+    return t === null ? null : Math.floor(t);
+  }
+
+  async revokeSessions(userId: string): Promise<void> {
+    const sql = await this.db();
+    await sql`update users set sessions_valid_after = now() where id = ${userId}`;
+  }
+
   async getUserById(id: string): Promise<PrivyUserRecord | null> {
     if (!isUuid(id)) return null;
     const sql = await this.db();

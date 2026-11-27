@@ -5,6 +5,7 @@ import { ApiError, handle, newId, ok, readJson } from "@/lib/server/api";
 import { loadLearnerState, logActivity, nextMissionFor, recomputeMastery } from "@/lib/server/learner";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { scenarioAttemptSchema } from "@/lib/server/validation";
+import { PORTFOLIO_REVIEW_TEMPLATE_ID } from "@/lib/learning/portfolio";
 import type { ScenarioAttempt, ScenarioAttemptResponse } from "@/lib/types";
 
 export const POST = handle(async (req, ctx: { params: Promise<{ id: string }> }) => {
@@ -16,6 +17,8 @@ export const POST = handle(async (req, ctx: { params: Promise<{ id: string }> })
   const repo = await getRepository();
   const scenario = await repo.getScenario(id);
   if (!scenario) throw new ApiError("not_found", "Scenario not found.");
+  // portfolio reviews are graded only through /api/portfolio/[id]/review, by the portfolio's owner
+  if (scenario.templateId === PORTFOLIO_REVIEW_TEMPLATE_ID) throw new ApiError("not_found", "Scenario not found.");
 
   const state = await loadLearnerState(repo, user);
   const now = new Date();

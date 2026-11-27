@@ -23,6 +23,9 @@ import { callStructured } from "./structured";
 
 const HINT_PREFIX_RE = /^Hint [123]\/3:/;
 const MAX_CONCEPTS = 3;
+/** prompt carries only the most recent turns; a session ends at the hard cap */
+const COACH_HISTORY_TURNS = 24;
+const COACH_MAX_MESSAGES = 120;
 
 type Beat = { kind: "concept"; concept: ConceptSection } | { kind: "kc"; check: KnowledgeCheck };
 
@@ -345,6 +348,14 @@ export async function coachRespond(
   ctxIn: { memory: LearningMemory; evidence: EvidencePack; model?: LanguageModel | null },
 ): Promise<CoachSession> {
   if (session.status === "completed") return session;
+  if (session.messages.length >= COACH_MAX_MESSAGES) {
+    return {
+      ...session,
+      status: "completed",
+      messages: [...session.messages, coachMessage("This session has reached its length limit. Start a new session on this skill to keep going.", [])],
+      updatedAt: new Date().toISOString(),
+    };
+  }
   const withLearner: CoachSession = { ...session, messages: [...session.messages, learnerMessage(learnerText)] };
   const model = ctxIn.model === undefined ? getModel() : ctxIn.model;
 
@@ -364,7 +375,7 @@ export async function coachRespond(
         preferredStyle: ctxIn.memory.preferredStyle,
         recurringMisconceptionIds: ctxIn.memory.recurringMisconceptions.map((r) => r.misconceptionId),
         evidence: ctxIn.evidence,
-        history: session.messages,
+        history: session.messages.slice(-COACH_HISTORY_TURNS), // bounded prompt size
         learnerMessage: learnerText,
         hintsRevealed: session.hintsRevealed,
       },

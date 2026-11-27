@@ -28,6 +28,14 @@ function safeNext(next: string | undefined, fallback: string): string {
   if (!next) return fallback;
   // only same-origin relative paths; never protocol-relative or absolute URLs
   if (!next.startsWith("/") || next.startsWith("//") || next.includes("://")) return fallback;
+  // backslashes and control characters (tab, newline) make URL parsers read "/\evil.com" as another host
+  if (/[\\\u0000-\u001f\u007f]/.test(next)) return fallback;
+  try {
+    const u = new URL(next, "https://marketgym.invalid");
+    if (u.origin !== "https://marketgym.invalid") return fallback;
+  } catch {
+    return fallback;
+  }
   return next;
 }
 
@@ -115,6 +123,10 @@ export async function handleLogin(req: Request): Promise<Response> {
 export async function handleLogout(req: Request): Promise<Response> {
   const isForm = (req.headers.get("content-type") ?? "").includes("form");
   if (isPrivyMode()) {
+    // revoke server-side too, so a copied cookie dies at sign-out and not 7 days later
+    const { getCurrentUser } = await import("@/lib/auth/session");
+    const current = await getCurrentUser().catch(() => null);
+    if (current) await (await getPostgresRepositoryFromEnv()).revokeSessions(current.id);
     const res = respond(req, { mode: "privy", redirectTo: "/" }, isForm);
     return withCookie(res, clearedSessionCookie(cookieAttrs()));
   }

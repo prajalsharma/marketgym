@@ -85,6 +85,9 @@ export function errorToResponse(err: unknown): Response {
 
 /** Parse a JSON body; malformed JSON → validation_error. */
 export async function readJson(req: Request): Promise<unknown> {
+  // JSON only: a cross-site HTML form cannot send application/json without a CORS preflight
+  const type = (req.headers.get("content-type") ?? "").toLowerCase();
+  if (!type.includes("application/json")) throw new ApiError("validation_error", "Content-Type must be application/json.");
   try {
     return await req.json();
   } catch {

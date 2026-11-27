@@ -25,8 +25,8 @@ export function PctValue({
     const sign = value! < 0 ? "−" : "+";
     const full = `${sign}${Math.abs(value!).toLocaleString("en-US", { maximumFractionDigits: 2 })}%`;
     return (
-      <span className="inline-flex flex-col">
-        <span className={cn("tabular font-mono text-fg", className)}>{full}</span>
+      <span className="inline-flex max-w-[9rem] flex-col">
+        <span className={cn("tabular break-all font-mono text-fg", className)}>{full}</span>
         <span className={cn("text-xs text-warning", noteClassName)}>{UNUSUAL_NOTE}</span>
       </span>
     );

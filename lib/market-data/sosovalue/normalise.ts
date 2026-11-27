@@ -83,7 +83,8 @@ export function categoriseNews(item: Pick<NewsItem, "category" | "tags" | "title
 export function toNewsEvidence(item: NewsItem, provenance: DataProvenance): NewsEvidence {
   const text = htmlToText(item.content ?? "");
   const title = item.title && item.title.trim().length > 0 ? htmlToText(item.title) : truncateText(text, 120) || "Untitled";
-  const url = item.original_link || item.source_link || "https://sosovalue.com";
+  // provider-supplied links are untrusted: only http(s) may reach an href
+  const url = [item.original_link, item.source_link].find((u) => typeof u === "string" && /^https?:\/\//i.test(u.trim()))?.trim() ?? "https://sosovalue.com";
   let source = "SoSoValue";
   try {
     const host = new URL(url).hostname.replace(/^www\./, "");

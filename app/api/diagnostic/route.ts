@@ -3,11 +3,13 @@ import { getRepository } from "@/lib/db";
 import { runDiagnostic } from "@/lib/learning/diagnostic";
 import { handle, newId, ok, readJson } from "@/lib/server/api";
 import { loadLearnerState, logActivity, nextMissionFor } from "@/lib/server/learner";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { diagnosticSubmitSchema } from "@/lib/server/validation";
 import type { DiagnosticSubmitResponse } from "@/lib/types";
 
 export const POST = handle(async (req) => {
   const user = await requireUser();
+  enforceRateLimit(req, "scenarios", user.id); // may call the model: same limit as other graded routes
   const input = diagnosticSubmitSchema.parse(await readJson(req));
   const repo = await getRepository();
   const state = await loadLearnerState(repo, user);

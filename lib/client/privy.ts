@@ -27,6 +27,12 @@ export const PRIVY_CONFIG: PrivyClientConfig = {
 /** Only same-origin paths survive as a post-login destination. */
 export function safeNext(next: string | null | undefined): string | null {
   if (!next || typeof next !== "string") return null;
-  if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return null;
+  if (!next.startsWith("/") || next.startsWith("//") || next.includes("://")) return null;
+  if (/[\\\u0000-\u001f\u007f]/.test(next)) return null;
+  try {
+    if (new URL(next, "https://marketgym.invalid").origin !== "https://marketgym.invalid") return null;
+  } catch {
+    return null;
+  }
   return next;
 }
