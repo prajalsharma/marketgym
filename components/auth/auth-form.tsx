@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Button, Input, Label } from "@/components/ui";
 import { apiPost, describeError, isApiClientError } from "@/lib/client/api";
+import { spring } from "@/lib/client/motion";
 
 interface Props {
   mode: "login" | "signup";
@@ -29,6 +31,7 @@ export function AuthForm({ mode }: Props) {
   const [localNote, setLocalNote] = useState(false);
 
   const isSignup = mode === "signup";
+  const reduce = useReducedMotion();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,7 +65,7 @@ export function AuthForm({ mode }: Props) {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4" noValidate>
+    <form onSubmit={submit} className="space-y-5" noValidate>
       {isSignup ? (
         <div className="space-y-1.5">
           <Label htmlFor={nameId}>Name</Label>
@@ -101,22 +104,32 @@ export function AuthForm({ mode }: Props) {
         {isSignup ? <p className="text-xs text-muted">At least 8 characters.</p> : null}
       </div>
 
-      {error ? (
-        <p role="alert" className="rounded-md border border-danger bg-danger-soft p-3 text-sm">
-          {error}
-        </p>
-      ) : null}
+      <AnimatePresence initial={false}>
+        {error ? (
+          <motion.p
+            key="error"
+            role="alert"
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={spring.snappy}
+            className="rounded-lg border border-danger bg-danger-soft p-3 text-sm"
+          >
+            {error}
+          </motion.p>
+        ) : null}
+      </AnimatePresence>
       {localNote ? (
         <p className="text-sm text-muted" aria-live="polite">
           Running locally without an account. Taking you to onboarding.
         </p>
       ) : null}
 
-      <Button type="submit" size="lg" className="w-full" disabled={pending}>
+      <Button type="submit" size="lg" className="w-full transition-[background-color,border-color,color,opacity,scale] active:scale-[0.98]" disabled={pending}>
         {pending ? (isSignup ? "Creating account…" : "Logging in…") : isSignup ? "Create account" : "Log in"}
       </Button>
 
-      <div className="flex flex-col gap-2 text-sm text-muted">
+      <div className="flex flex-col gap-3 border-t border-line pt-5 text-sm text-muted">
         <p>
           {isSignup ? "Already have an account?" : "New here?"}{" "}
           <Link href={isSignup ? "/login" : "/signup"} className="text-accent underline-offset-4 hover:underline">
@@ -128,7 +141,7 @@ export function AuthForm({ mode }: Props) {
           <Link href="/app/onboarding" className="text-accent underline-offset-4 hover:underline">
             Continue without an account
           </Link>
-          <span className="block text-xs text-subtle">Works when the app runs in local mode; otherwise you will be asked to log in.</span>
+          <span className="mt-1 block text-xs leading-relaxed text-subtle">Works when the app runs in local mode; otherwise you will be asked to log in.</span>
         </p>
       </div>
     </form>

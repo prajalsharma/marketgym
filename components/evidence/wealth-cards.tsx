@@ -21,6 +21,7 @@ import {
 import { PctValue } from "@/components/wealth/return-value";
 import { MARKET_STATUS_LABEL, distinctProvenance, headlineReturn, marketStatusTone } from "@/lib/client/wealth";
 import { cn } from "@/lib/utils";
+import { EVIDENCE_CARD } from "./snapshot-card";
 
 function changeClass(v: number | null | undefined): string {
   if (v === null || v === undefined) return "text-muted";
@@ -52,7 +53,7 @@ export function WealthFundsEvidence({ funds, quotes }: { funds: WealthFund[]; qu
   }
   const tags = distinctProvenance([...funds.map((f) => f.provenance), ...quotes.map((q) => q.provenance)]);
   return (
-    <Card tone="evidence">
+    <Card tone="evidence" className={EVIDENCE_CARD}>
       <CardHeader className="flex flex-row items-baseline justify-between gap-3 space-y-0">
         <CardTitle className="text-base">SoDEX Wealth fund board</CardTitle>
         <span className="text-xs text-muted">{rows.length} funds</span>
@@ -73,16 +74,16 @@ export function WealthFundsEvidence({ funds, quotes }: { funds: WealthFund[]; qu
               {rows.map((r) => {
                 const ret = headlineReturn(r.quote);
                 return (
-                  <tr key={r.id} className="border-b border-evidence-line last:border-b-0">
-                    <th scope="row" className="py-1.5 pr-2 text-left font-normal">
+                  <tr key={r.id} className="border-b border-evidence-line transition-colors duration-150 last:border-b-0 hover:bg-surface-raised">
+                    <th scope="row" className="py-2 pr-2 text-left font-medium">
                       {r.fund?.name ?? r.quote?.symbol ?? r.id}
-                      {r.fund ? <span className="block text-xs text-muted">{r.fund.kindLabel}</span> : null}
+                      {r.fund ? <span className="block text-xs font-normal text-muted">{r.fund.kindLabel}</span> : null}
                     </th>
-                    <td className="tabular py-1.5 pr-2 text-right font-mono">{formatUsd(r.quote?.price)}</td>
-                    <td className={cn("tabular py-1.5 pr-2 text-right font-mono", changeClass(r.quote?.changePct))}>
+                    <td className="tabular py-2 pr-2 text-right font-mono">{formatUsd(r.quote?.price)}</td>
+                    <td className={cn("tabular py-2 pr-2 text-right font-mono", changeClass(r.quote?.changePct))}>
                       {formatPercent(r.quote?.changePct)}
                     </td>
-                    <td className="py-1.5 text-right">
+                    <td className="py-2 text-right">
                       <PctValue value={ret.value} />
                       <span className="block text-xs text-muted">{ret.label}</span>
                     </td>
@@ -105,7 +106,7 @@ export function WealthFundsEvidence({ funds, quotes }: { funds: WealthFund[]; qu
 function WealthFundCard({ fundId, fund, quote }: { fundId: string; fund: WealthFund | null; quote: WealthQuote | null }) {
   const ret = headlineReturn(quote);
   return (
-    <Card tone="evidence">
+    <Card tone="evidence" className={EVIDENCE_CARD}>
       <CardHeader className="flex flex-row items-baseline justify-between gap-3 space-y-0">
         <CardTitle className="text-base">
           {fund?.name ?? quote?.symbol ?? fundId}{" "}
@@ -118,8 +119,8 @@ function WealthFundCard({ fundId, fund, quote }: { fundId: string; fund: WealthF
         ) : null}
       </CardHeader>
       <CardContent>
-        <p className="tabular font-mono text-xl tracking-tight">{formatUsd(quote?.price)}</p>
-        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+        <p className="tabular font-mono text-3xl font-semibold tracking-tight">{formatUsd(quote?.price)}</p>
+        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1.5 border-t border-evidence-line pt-3 text-sm">
           <dt className="text-muted">NAV per share</dt>
           <dd className="tabular text-right font-mono">{fund?.nav === null || !fund ? "—" : formatUsd(fund.nav)}</dd>
           <dt className="text-muted">{ret.label}</dt>
@@ -158,7 +159,7 @@ export function PriceHistoryCard({ series, name }: { series: WealthPriceSeries; 
   const last = points[points.length - 1]?.y;
   const change = first !== undefined && last !== undefined && first !== 0 ? ((last - first) / first) * 100 : null;
   return (
-    <Card tone="evidence">
+    <Card tone="evidence" className={EVIDENCE_CARD}>
       <CardHeader className="flex flex-row items-baseline justify-between gap-3 space-y-0">
         <CardTitle className="text-base">
           {name ?? series.symbol ?? series.fundId} price, {series.range}
@@ -170,12 +171,15 @@ export function PriceHistoryCard({ series, name }: { series: WealthPriceSeries; 
           <p className="text-sm text-muted">Not enough price points in this pack.</p>
         ) : (
           <>
+            <p className="tabular mb-3 font-mono text-3xl font-semibold tracking-tight" aria-hidden="true">
+              {formatUsd(last)}
+            </p>
             <SeriesLineChart
               points={points}
               label={`Closing price of ${series.fundId} over ${series.range}`}
               seriesName="Close"
               formatY={(v) => formatUsd(v)}
-              className="h-36"
+              className="h-40"
             />
             <p className="mt-2 text-xs text-muted">
               {formatDate(points[0].x)} to {formatDate(points[points.length - 1].x)} · first {formatUsd(first)}, last{" "}
@@ -196,15 +200,17 @@ export function PriceHistoryCard({ series, name }: { series: WealthPriceSeries; 
 export function DcaCard({ sim, name }: { sim: DcaSimulation; name?: string }) {
   const points = sim.points.map((p) => ({ x: p.tradeDate, y: p.returnPct }));
   return (
-    <Card tone="evidence">
+    <Card tone="evidence" className={EVIDENCE_CARD}>
       <CardHeader className="flex flex-row items-baseline justify-between gap-3 space-y-0">
         <CardTitle className="text-base">
           {name ?? sim.fundId} weekly-buying simulation, {sim.range}
         </CardTitle>
-        <span className={cn("tabular font-mono text-sm", changeClass(sim.totalReturnPct))}>{formatPercent(sim.totalReturnPct)}</span>
       </CardHeader>
       <CardContent>
-        <p className="text-xs text-muted">SoDEX&apos;s example of equal weekly buys. Not a forecast and not anyone&apos;s account.</p>
+        <p className={cn("tabular font-mono text-3xl font-semibold tracking-tight", changeClass(sim.totalReturnPct))}>
+          {formatPercent(sim.totalReturnPct)}
+        </p>
+        <p className="mt-1.5 text-xs text-muted">SoDEX&apos;s example of equal weekly buys. Not a forecast and not anyone&apos;s account.</p>
         {!sim.ready || points.length < 2 ? (
           <p className="mt-2 text-sm text-muted">SoDEX had not published this simulation when the evidence was frozen.</p>
         ) : (
@@ -215,7 +221,7 @@ export function DcaCard({ sim, name }: { sim: DcaSimulation; name?: string }) {
             formatY={(v) => formatPercent(v, { digits: 1 })}
             zeroLine
             color="chart-3"
-            className="mt-2 h-36"
+            className="mt-3 h-40"
           />
         )}
         <div className="mt-3">
@@ -231,16 +237,22 @@ export function DcaCard({ sim, name }: { sim: DcaSimulation; name?: string }) {
 export function RewardsIncentivesCard({ incentives: inc }: { incentives: RewardsIncentives }) {
   const top = [...inc.multipliers].sort((a, b) => b.coefficient - a.coefficient).slice(0, 6);
   return (
-    <Card tone="evidence">
+    <Card tone="evidence" className={EVIDENCE_CARD}>
       <CardHeader>
         <CardTitle className="text-base">SoDEX trading rewards</CardTitle>
       </CardHeader>
       <CardContent>
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-          <dt className="text-muted">Week</dt>
-          <dd className="text-right">{inc.weekName ?? "—"}</dd>
-          <dt className="text-muted">Points pool</dt>
-          <dd className="tabular text-right font-mono">{formatCompact(inc.weekPoolPoints)}</dd>
+        <dl className="grid grid-cols-2 gap-4">
+          <div>
+            <dt className="text-xs text-muted">Points pool</dt>
+            <dd className="tabular mt-0.5 font-mono text-3xl font-semibold tracking-tight">{formatCompact(inc.weekPoolPoints)}</dd>
+          </div>
+          <div className="text-right">
+            <dt className="text-xs text-muted">Week</dt>
+            <dd className="mt-0.5 text-sm">{inc.weekName ?? "—"}</dd>
+          </div>
+        </dl>
+        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1.5 border-t border-evidence-line pt-3 text-sm">
           <dt className="text-muted">Paid out</dt>
           <dd className="text-right">{formatDateTime(inc.distributionTime)}</dd>
           <dt className="text-muted">Volume per box</dt>
@@ -253,13 +265,19 @@ export function RewardsIncentivesCard({ incentives: inc }: { incentives: Rewards
           <dd className="text-right">{inc.probabilitiesPublished ? "Published" : "Not published"}</dd>
         </dl>
         {top.length > 0 ? (
-          <div className="mt-3">
+          <div className="mt-4 border-t border-evidence-line pt-3">
             <p className="text-xs text-muted">Highest points multipliers</p>
-            <ul className="mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm">
-              {top.map((m) => (
-                <li key={`${m.marketType}:${m.symbol}`} className="flex justify-between gap-2">
+            <ul className="mt-2 space-y-1.5 text-sm">
+              {top.map((m, i) => (
+                <li key={`${m.marketType}:${m.symbol}`} className="grid grid-cols-[minmax(0,6rem)_1fr_3.5rem] items-center gap-2">
                   <span className="truncate font-mono">{m.symbol}</span>
-                  <span className="tabular font-mono text-muted">×{formatNumber(m.coefficient, 2)}</span>
+                  <span className="h-2 overflow-hidden rounded-sm bg-surface-sunken" aria-hidden="true">
+                    <span
+                      className={cn("block h-full rounded-sm bg-accent", i > 0 && "opacity-60")}
+                      style={{ width: `${Math.round((m.coefficient / Math.max(top[0].coefficient, 1e-9)) * 100)}%` }}
+                    />
+                  </span>
+                  <span className="tabular text-right font-mono text-muted">×{formatNumber(m.coefficient, 2)}</span>
                 </li>
               ))}
             </ul>
@@ -282,7 +300,7 @@ export function RewardsIncentivesCard({ incentives: inc }: { incentives: Rewards
 export function RewardFeedCard({ feed }: { feed: RewardFeed }) {
   const items = [...feed.items].sort((a, b) => b.tsMs - a.tsMs).slice(0, 8);
   return (
-    <Card tone="evidence">
+    <Card tone="evidence" className={EVIDENCE_CARD}>
       <CardHeader className="flex flex-row items-baseline justify-between gap-3 space-y-0">
         <CardTitle className="text-base">Reward feed, big wins only</CardTitle>
         <span className="text-xs text-muted">{feed.items.length} shown</span>
@@ -294,11 +312,14 @@ export function RewardFeedCard({ feed }: { feed: RewardFeed }) {
         ) : (
           <ul className="mt-2 divide-y divide-evidence-line text-sm">
             {items.map((it, i) => (
-              <li key={`${it.tsMs}-${i}`} className="flex items-baseline justify-between gap-3 py-1.5">
+              <li
+                key={`${it.tsMs}-${i}`}
+                className="-mx-2 flex items-baseline justify-between gap-3 rounded-sm px-2 py-2 transition-colors duration-150 hover:bg-surface-raised"
+              >
                 <span className="min-w-0 truncate">
                   {it.level} <span className="text-muted">· {it.assetSymbol}{it.pfp ? " · PFP" : ""}</span>
                 </span>
-                <span className="tabular shrink-0 font-mono">{formatUsd(it.rewardUsd)}</span>
+                <span className="tabular shrink-0 font-mono font-medium">{formatUsd(it.rewardUsd)}</span>
               </li>
             ))}
           </ul>

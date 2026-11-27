@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { AlertTriangle } from "lucide-react";
 import type { PortfolioAnalysis } from "@/lib/types/wealth";
 import { DataSourceTag, Stat } from "@/components/ui";
@@ -15,15 +16,18 @@ function tone(v: number | null): "success" | "danger" | "default" | "muted" {
 export function AnalysisPanel({ analysis: a }: { analysis: PortfolioAnalysis }) {
   const tags = distinctProvenance(a.provenance);
   return (
-    <section aria-labelledby="analysis-heading" className="space-y-5 rounded-lg border border-evidence-line bg-evidence p-4 sm:p-5">
+    <section
+      aria-labelledby="analysis-heading"
+      className="animate-rise-in space-y-5 rounded-lg border border-evidence-line bg-evidence p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.04),var(--shadow-sm)] sm:p-6"
+    >
       <div className="space-y-1">
-        <h2 id="analysis-heading" className="text-lg font-semibold">
+        <h2 id="analysis-heading" className="text-xl font-semibold tracking-tight">
           Analysis
         </h2>
         <p className="text-sm text-muted">Worked out from SoDEX Wealth data at save time. No AI here, just arithmetic on your weights.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-evidence-line bg-evidence-line sm:grid-cols-3 [&>*]:bg-evidence [&>*]:p-3.5">
         <Stat
           label="Effective holdings"
           value={formatNumber(a.effectiveHoldings, 1)}
@@ -55,13 +59,20 @@ export function AnalysisPanel({ analysis: a }: { analysis: PortfolioAnalysis }) 
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold">Things to look at</h3>
+        <h3 className="flex items-baseline gap-2 text-base font-semibold">
+          Things to look at
+          {a.flags.length > 0 ? <span className="tabular font-mono text-xs font-normal text-muted">{a.flags.length}</span> : null}
+        </h3>
         {a.flags.length === 0 ? (
           <p className="mt-2 text-sm text-muted">Nothing stood out in the numbers. Your rationale still has to explain the choices.</p>
         ) : (
-          <ul className="mt-2 space-y-1.5 text-sm">
-            {a.flags.map((f) => (
-              <li key={f} className="flex gap-2 leading-snug">
+          <ul className="stagger-in mt-3 space-y-2 text-sm">
+            {a.flags.map((f, i) => (
+              <li
+                key={f}
+                style={{ "--i": i } as CSSProperties}
+                className="flex gap-2.5 rounded-md border border-warning/30 bg-warning-soft px-3 py-2.5 leading-snug"
+              >
                 <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
                 <span>{f}</span>
               </li>
@@ -70,7 +81,7 @@ export function AnalysisPanel({ analysis: a }: { analysis: PortfolioAnalysis }) 
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+      <div className="flex flex-wrap items-center gap-2 border-t border-evidence-line pt-4 text-xs text-muted">
         <span>Evidence as of {formatDateTime(a.evidenceAsOf)}</span>
         {tags.map((p) => (
           <DataSourceTag key={`${p.provider}:${p.kind}`} provenance={p} compact />

@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { motion } from "framer-motion";
 import { CornerDownLeft, Moon, Search } from "lucide-react";
+import { LogoMark } from "@/components/marketing/wordmark";
 import { Kbd, applyTheme, readTheme } from "@/components/ui";
 import { spring } from "@/lib/client/motion";
 import { cn } from "@/lib/utils";
@@ -124,20 +125,23 @@ export function CommandMenu() {
       }}
     >
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-(--z-backdrop) bg-black/50 animate-fade-in" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-(--z-backdrop) bg-black/55 backdrop-blur-sm animate-fade-in" />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="fixed inset-x-4 top-[12dvh] z-(--z-modal) mx-auto max-w-lg outline-none"
+          className="fixed inset-x-4 top-[12dvh] z-(--z-modal) mx-auto max-w-xl outline-none"
         >
           <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            initial={{ opacity: 0, y: -12, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={spring.snappy}
-            className="surface-glass overflow-hidden rounded-lg border border-line-strong"
+            className="surface-glass origin-top overflow-hidden rounded-lg border border-line-strong"
           >
             <DialogPrimitive.Title className="sr-only">Jump to a page</DialogPrimitive.Title>
-            <div className="flex items-center gap-2.5 border-b border-line px-4">
-              <Search className="size-4 shrink-0 text-subtle" aria-hidden="true" />
+            <div className="group/search flex items-center gap-3 border-b border-line px-4">
+              <Search
+                className="size-[18px] shrink-0 text-subtle transition-colors duration-150 group-focus-within/search:text-accent"
+                aria-hidden="true"
+              />
               <input
                 autoFocus
                 value={query}
@@ -152,17 +156,17 @@ export function CommandMenu() {
                 aria-controls={listId}
                 aria-activedescendant={results[safeIndex] ? `${listId}-${results[safeIndex].id}` : undefined}
                 aria-label="Search pages and actions"
-                className="h-12 w-full bg-transparent text-base text-fg outline-none placeholder:text-subtle"
+                className="h-14 w-full bg-transparent text-base text-fg outline-none placeholder:text-subtle"
               />
               <Kbd>Esc</Kbd>
             </div>
-            <div id={listId} role="listbox" aria-label="Results" className="max-h-80 overflow-y-auto p-1.5 scrollbar-thin">
+            <div id={listId} role="listbox" aria-label="Results" className="max-h-[min(26rem,56dvh)] overflow-y-auto p-2 scrollbar-thin">
               {results.length === 0 ? (
-                <p className="px-3 py-8 text-center text-sm text-muted">Nothing matches &ldquo;{query}&rdquo;.</p>
+                <p className="animate-fade-in px-3 py-10 text-center text-sm text-muted">Nothing matches &ldquo;{query}&rdquo;.</p>
               ) : (
                 groups.map(({ g, items }) => (
                   <div key={g} role="group" aria-label={g} className="py-1">
-                    <p className="px-2.5 pb-1 pt-1.5 text-xs text-subtle" aria-hidden="true">
+                    <p className="px-2.5 pb-1.5 pt-1.5 text-xs font-medium text-subtle" aria-hidden="true">
                       {g}
                     </p>
                     {items.map((c) => {
@@ -178,21 +182,35 @@ export function CommandMenu() {
                           onPointerMove={() => setIndex(i)}
                           onClick={() => choose(c)}
                           className={cn(
-                            "relative flex h-10 cursor-pointer items-center gap-3 rounded-md px-2.5 text-sm",
-                            selected ? "text-fg" : "text-muted",
+                            "relative flex h-12 cursor-pointer items-center gap-3 rounded-md px-2 text-sm transition-[color,transform] duration-150 ease-out active:scale-[0.99]",
+                            selected ? "font-medium text-fg" : "text-muted",
                           )}
                         >
                           {selected ? (
                             <motion.span
                               layoutId="cmd-active"
                               transition={spring.morph}
-                              className="absolute inset-0 rounded-md bg-accent-soft"
+                              className="absolute inset-0 rounded-md border border-line bg-surface-raised shadow-[inset_0_1px_0_rgb(255_255_255/0.04)]"
                               aria-hidden="true"
-                            />
+                            >
+                              <span className="absolute inset-y-3 left-0 w-[3px] -translate-x-px rounded-r-sm bg-accent" />
+                            </motion.span>
                           ) : null}
-                          <Icon className={cn("relative size-4 shrink-0", selected ? "text-accent" : "text-subtle")} />
+                          <span
+                            className={cn(
+                              "relative flex size-8 shrink-0 items-center justify-center rounded-md transition-colors duration-150",
+                              selected ? "bg-accent-soft text-accent" : "bg-surface-sunken text-subtle",
+                            )}
+                          >
+                            <Icon className="size-4" />
+                          </span>
                           <span className="relative flex-1 truncate">{c.title}</span>
-                          {selected ? <CornerDownLeft className="relative size-3.5 text-subtle" aria-hidden="true" /> : null}
+                          {selected ? (
+                            <span className="relative flex items-center gap-1.5 text-xs font-normal text-subtle" aria-hidden="true">
+                              {c.group === "Go to" ? "Open" : "Run"}
+                              <CornerDownLeft className="size-3.5" />
+                            </span>
+                          ) : null}
                         </div>
                       );
                     })}
@@ -200,13 +218,17 @@ export function CommandMenu() {
                 ))
               )}
             </div>
-            <div className="flex items-center gap-4 border-t border-line px-4 py-2 text-xs text-subtle">
+            <div className="flex items-center gap-4 border-t border-line bg-surface-sunken/60 px-4 py-2.5 text-xs text-subtle">
               <span className="flex items-center gap-1.5">
                 <Kbd>↑</Kbd>
                 <Kbd>↓</Kbd> move
               </span>
               <span className="flex items-center gap-1.5">
                 <Kbd>↵</Kbd> open
+              </span>
+              <span className="ml-auto flex items-center gap-1.5 text-muted" aria-hidden="true">
+                <LogoMark size={16} />
+                MarketGym
               </span>
             </div>
           </motion.div>
@@ -233,7 +255,7 @@ export function CommandMenuTrigger({ compact = false }: { compact?: boolean }) {
         type="button"
         onClick={open}
         aria-label="Jump to a page"
-        className="inline-flex size-9 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-raised hover:text-fg"
+        className="inline-flex size-9 items-center justify-center rounded-md text-muted transition-[color,background-color,transform] duration-150 ease-out hover:bg-surface-raised hover:text-fg active:scale-95"
       >
         <Search className="size-4" aria-hidden="true" />
       </button>
@@ -243,9 +265,9 @@ export function CommandMenuTrigger({ compact = false }: { compact?: boolean }) {
     <button
       type="button"
       onClick={open}
-      className="flex h-9 w-full items-center gap-2.5 rounded-md border border-line bg-surface px-2.5 text-sm text-subtle transition-colors duration-(--duration-fast) hover:border-line-strong hover:text-muted"
+      className="group flex h-10 w-full items-center gap-2.5 rounded-md border border-line bg-surface px-3 text-sm text-subtle shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] transition-[color,background-color,border-color,transform] duration-(--duration-fast) ease-out hover:border-line-strong hover:bg-surface-raised hover:text-fg active:scale-[0.98]"
     >
-      <Search className="size-4 shrink-0" aria-hidden="true" />
+      <Search className="size-4 shrink-0 transition-colors duration-150 group-hover:text-accent" aria-hidden="true" />
       <span className="flex-1 text-left">Jump to</span>
       <span className="flex items-center gap-0.5" aria-hidden="true">
         <Kbd>{mac ? "⌘" : "Ctrl"}</Kbd>

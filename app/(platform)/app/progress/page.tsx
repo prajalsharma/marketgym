@@ -1,4 +1,6 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
+import { Check, Flame } from "lucide-react";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import Link from "next/link";
 import type {
@@ -7,7 +9,8 @@ import type {
   ProgressReviewsResponse,
   ProgressSkillsResponse,
 } from "@/lib/types/api";
-import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState, MasteryIndicator, PageHeader, Stat } from "@/components/ui";
+import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState, PageHeader, Stat } from "@/components/ui";
+import { MasteryBar, ModulePassport } from "@/components/progress/skill-passport";
 import { ReviewList } from "@/components/platform/activity-list";
 import { NextMissionCard } from "@/components/platform/next-mission-card";
 import { RetryError } from "@/components/shared/retry-error";
@@ -48,92 +51,122 @@ export default async function ProgressPage() {
   const history = attempts.ok ? [...attempts.data].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)) : null;
   const reviewList = reviews.ok ? reviews.data : o.upcomingReviews;
 
+  const dueNow = reviewList.filter((r) => !r.completedAt && new Date(r.scheduledAt) <= new Date()).length;
+  const panel = "shadow-[inset_0_1px_0_rgb(255_255_255/0.04),var(--shadow-sm)]";
+
   return (
     <div className="space-y-8">
       <PageHeader
+        className="animate-rise-in [&_h1]:text-2xl [&_h1]:tracking-tight sm:[&_h1]:text-3xl"
         title="My progress"
         description={`${o.masteredCount} of ${o.totalSkills} skills mastered${o.streakDays > 0 ? ` · ${o.streakDays}-day streak` : ""}`}
       />
 
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line lg:grid-cols-4">
-        <Stat className="bg-surface p-4" label="Mastered" value={<AnimatedNumber value={o.masteredCount} countUp />} hint={`of ${o.totalSkills} skills`} />
-        <Stat className="bg-surface p-4" label="Streak" value={<AnimatedNumber value={o.streakDays} countUp />} hint={o.streakDays === 1 ? "day" : "days"} />
-        <Stat
-          className="bg-surface p-4"
-          label="Attempts this week"
-          value={<AnimatedNumber value={o.weekly.attempts} countUp />}
-          hint={o.weekly.averageScore === null ? "no scores yet" : `avg ${Math.round(o.weekly.averageScore)}`}
-        />
-        <Stat
-          className="bg-surface p-4"
-          label="Reviews due"
-          value={<AnimatedNumber value={reviewList.filter((r) => !r.completedAt && new Date(r.scheduledAt) <= new Date()).length} countUp />}
-          hint="ready now"
-        />
+      <div className={`animate-rise-in grid overflow-hidden rounded-lg border border-line-strong bg-line lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-px ${panel}`}>
+        <div className="flex flex-col justify-between gap-5 bg-surface-raised p-5 sm:p-6">
+          <div>
+            <p className="text-sm text-muted">Mastered</p>
+            <p className="mt-1 flex items-baseline gap-2">
+              <span className="font-mono text-5xl font-semibold leading-none tracking-tight text-accent sm:text-6xl">
+                <AnimatedNumber value={o.masteredCount} countUp />
+              </span>
+              <span className="text-base text-muted">of {o.totalSkills} skills</span>
+            </p>
+          </div>
+          <MasteryBar size="md" value={o.totalSkills > 0 ? (o.masteredCount / o.totalSkills) * 100 : 0} delay={0.2} />
+        </div>
+        <div className="grid gap-px bg-line sm:grid-cols-3">
+          <Stat
+            className="justify-center bg-surface p-4 sm:p-5 [&>span:nth-child(2)]:text-2xl"
+            label="Streak"
+            value={
+              <span className="inline-flex items-center gap-1.5">
+                <Flame className={o.streakDays > 0 ? "size-5 text-warning" : "size-5 text-subtle"} aria-hidden="true" />
+                <AnimatedNumber value={o.streakDays} countUp />
+              </span>
+            }
+            hint={o.streakDays === 1 ? "day" : "days"}
+          />
+          <Stat
+            className="justify-center bg-surface p-4 sm:p-5 [&>span:nth-child(2)]:text-2xl"
+            label="Attempts this week"
+            value={<AnimatedNumber value={o.weekly.attempts} countUp />}
+            hint={o.weekly.averageScore === null ? "no scores yet" : `avg ${Math.round(o.weekly.averageScore)}`}
+          />
+          <Stat
+            className="justify-center bg-surface p-4 sm:p-5 [&>span:nth-child(2)]:text-2xl"
+            label="Reviews due"
+            value={<AnimatedNumber value={dueNow} countUp />}
+            hint="ready now"
+          />
+        </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Skill passport</CardTitle>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
+        <div className="min-w-0 space-y-6">
+          <Card padding="none" className={`overflow-hidden ${panel}`}>
+            <CardHeader className="bg-surface-sunken/60 px-5 py-4">
+              <CardTitle className="text-lg tracking-tight">Skill passport</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-5">
-              {[...byModule.entries()].map(([moduleId, list]) => (
-                <div key={moduleId}>
-                  <p className="text-xs font-medium text-muted">{categoryLabel(moduleId)}</p>
-                  <ul className="mt-1.5 divide-y divide-line">
-                    {list.map((s) => (
-                      <li key={s.skill.id} className="flex items-center justify-between gap-3 py-2 text-sm">
-                        <span className={s.unlocked ? "" : "text-muted"}>{s.skill.name}</span>
-                        <MasteryIndicator status={s.mastery?.masteryStatus ?? "not-started"} score={s.mastery?.masteryScore} size="sm" />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+            <CardContent className="divide-y divide-line">
+              {[...byModule.entries()].map(([moduleId, list], i) => (
+                <ModulePassport
+                  key={moduleId}
+                  index={i}
+                  title={categoryLabel(moduleId)}
+                  skills={list.map((s) => ({
+                    id: s.skill.id,
+                    name: s.skill.name,
+                    unlocked: s.unlocked,
+                    status: s.mastery?.masteryStatus ?? "not-started",
+                    score: s.mastery?.masteryScore,
+                  }))}
+                />
               ))}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Assessment history</CardTitle>
+          <Card padding="none" className={`overflow-hidden ${panel}`}>
+            <CardHeader className="bg-surface-sunken/60 px-5 py-4">
+              <CardTitle className="text-lg tracking-tight">Assessment history</CardTitle>
             </CardHeader>
             <CardContent>
               {history === null ? (
-                <p className="text-sm text-muted">Attempt history is unavailable: {describeError(attempts.ok ? null : attempts.error)}</p>
+                <p className="px-5 py-4 text-sm text-muted">Attempt history is unavailable: {describeError(attempts.ok ? null : attempts.error)}</p>
               ) : history.length === 0 ? (
-                <EmptyState
-                  title="No graded attempts yet"
-                  description="Scenario lab attempts land here with their score and how they were graded."
-                  action={
-                    <Link href="/app/scenario-lab" className="text-sm text-accent underline-offset-4 hover:underline">
-                      Open the Scenario lab
-                    </Link>
-                  }
-                />
+                <div className="p-5">
+                  <EmptyState
+                    title="No graded attempts yet"
+                    description="Scenario lab attempts land here with their score and how they were graded."
+                    action={
+                      <Link href="/app/scenario-lab" className="text-sm text-accent underline-offset-4 hover:underline">
+                        Open the Scenario lab
+                      </Link>
+                    }
+                  />
+                </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="text-left text-xs text-muted">
-                      <tr>
-                        <th className="py-1.5 pr-3 font-medium">Date</th>
-                        <th className="py-1.5 pr-3 font-medium">Skills</th>
-                        <th className="py-1.5 pr-3 text-right font-medium">Score</th>
-                        <th className="py-1.5 font-medium">Graded by</th>
+                      <tr className="border-b border-line">
+                        <th className="py-2.5 pl-5 pr-3 font-medium">Date</th>
+                        <th className="py-2.5 pr-3 font-medium">Skills</th>
+                        <th className="py-2.5 pr-3 text-right font-medium">Score</th>
+                        <th className="py-2.5 pr-5 font-medium">Graded by</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line">
                       {history.map((a) => (
-                        <tr key={a.id}>
-                          <td className="whitespace-nowrap py-2 pr-3 text-muted">
-                            <Link href={`/app/scenario-lab/${encodeURIComponent(a.scenarioId)}`} className="underline-offset-4 hover:underline">
+                        <tr key={a.id} className="transition-colors duration-150 hover:bg-surface-raised">
+                          <td className="whitespace-nowrap py-3 pl-5 pr-3 text-muted">
+                            <Link href={`/app/scenario-lab/${encodeURIComponent(a.scenarioId)}`} className="underline-offset-4 hover:text-fg hover:underline">
                               {formatDateTime(a.createdAt)}
                             </Link>
                           </td>
-                          <td className="py-2 pr-3">{a.skillIds.map((id) => skillNames[id] ?? humanise(id)).join(", ")}</td>
-                          <td className="py-2 pr-3 text-right font-mono tabular-nums">{a.evaluation.totalScore}</td>
-                          <td className="py-2">
+                          <td className="min-w-[10rem] py-3 pr-3">{a.skillIds.map((id) => skillNames[id] ?? humanise(id)).join(", ")}</td>
+                          <td className="py-3 pr-3 text-right font-mono text-base font-semibold tabular-nums">{a.evaluation.totalScore}</td>
+                          <td className="whitespace-nowrap py-3 pr-5">
                             <Badge tone={a.evaluation.evaluatorMode === "llm" ? "info" : "neutral"}>
                               {a.evaluation.evaluatorMode === "llm" ? "AI + rules" : "Rules"}
                             </Badge>
@@ -148,8 +181,8 @@ export default async function ProgressPage() {
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <Card>
+        <div className="stagger-in min-w-0 space-y-6">
+          <Card className={panel}>
             <CardHeader>
               <CardTitle>Demonstrated mastery</CardTitle>
             </CardHeader>
@@ -161,12 +194,17 @@ export default async function ProgressPage() {
               ) : (
                 <ul className="divide-y divide-line">
                   {mastered.map((s) => (
-                    <li key={s.skill.id} className="py-2 text-sm">
-                      <p>{s.skill.name}</p>
-                      <p className="text-xs text-muted">
-                        {s.mastery?.evidenceCount ?? 0} piece{(s.mastery?.evidenceCount ?? 0) === 1 ? "" : "s"} of evidence
-                        {s.mastery?.lastAssessedAt ? ` · last assessed ${formatRelative(s.mastery.lastAssessedAt)}` : ""}
-                      </p>
+                    <li key={s.skill.id} className="flex gap-3 py-2.5 text-sm first:pt-0 last:pb-0">
+                      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-success-soft text-success" aria-hidden="true">
+                        <Check className="size-3.5" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-medium">{s.skill.name}</p>
+                        <p className="text-xs text-muted">
+                          {s.mastery?.evidenceCount ?? 0} piece{(s.mastery?.evidenceCount ?? 0) === 1 ? "" : "s"} of evidence
+                          {s.mastery?.lastAssessedAt ? ` · last assessed ${formatRelative(s.mastery.lastAssessedAt)}` : ""}
+                        </p>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -174,7 +212,7 @@ export default async function ProgressPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className={panel} style={{ "--i": 1 } as CSSProperties}>
             <CardHeader>
               <CardTitle>Repeated misconceptions</CardTitle>
             </CardHeader>
@@ -182,12 +220,13 @@ export default async function ProgressPage() {
               {o.recurringMisconceptions.length === 0 ? (
                 <p className="text-sm text-muted">None recurring. Good sign.</p>
               ) : (
-                <ul className="space-y-2 text-sm">
+                <ul className="divide-y divide-line text-sm">
                   {o.recurringMisconceptions.map((m) => (
-                    <li key={m.misconceptionId} className="flex items-baseline justify-between gap-3">
-                      <span>{m.label || humanise(m.misconceptionId)}</span>
-                      <span className="whitespace-nowrap font-mono text-xs tabular-nums text-muted">
-                        ×{m.count} · {formatRelative(m.lastSeenAt)}
+                    <li key={m.misconceptionId} className="flex items-start justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+                      <span className="min-w-0">{m.label || humanise(m.misconceptionId)}</span>
+                      <span className="flex shrink-0 items-center gap-2 whitespace-nowrap font-mono text-xs tabular-nums text-muted">
+                        <span className="rounded-md bg-warning-soft px-1.5 py-0.5 font-semibold text-warning">×{m.count}</span>
+                        <span>· {formatRelative(m.lastSeenAt)}</span>
                       </span>
                     </li>
                   ))}
@@ -196,7 +235,7 @@ export default async function ProgressPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className={panel} style={{ "--i": 2 } as CSSProperties}>
             <CardHeader>
               <CardTitle>Review schedule</CardTitle>
             </CardHeader>
@@ -205,11 +244,13 @@ export default async function ProgressPage() {
             </CardContent>
           </Card>
 
-          <NextMissionCard mission={o.nextMission} skillName={skillNames[o.nextMission.skillId]} heading="Recommended" />
+          <div style={{ "--i": 3 } as CSSProperties}>
+            <NextMissionCard mission={o.nextMission} skillName={skillNames[o.nextMission.skillId]} heading="Recommended" />
+          </div>
           {o.weakestSkills.length > 0 ? (
-            <div className="text-sm">
-              <p className="text-xs font-medium text-muted">Also worth practising</p>
-              <ul className="mt-1.5 space-y-1">
+            <div className="text-sm" style={{ "--i": 4 } as CSSProperties}>
+              <p className="text-sm font-semibold">Also worth practising</p>
+              <ul className="mt-2 space-y-1.5">
                 {o.weakestSkills.slice(0, 3).map((w) => (
                   <li key={w.skillId}>
                     <Link href={`/app/scenario-lab?skill=${encodeURIComponent(w.skillId)}`} className="text-accent underline-offset-4 hover:underline">

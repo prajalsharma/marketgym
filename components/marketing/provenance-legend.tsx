@@ -27,9 +27,9 @@ export function ProvenanceLegend({ className }: { className?: string }) {
     },
   ];
   return (
-    <ul className={cn("space-y-2.5", className)} aria-label="How freshness is labelled">
+    <ul className={cn("divide-y divide-line rounded-lg border border-line bg-surface", className)} aria-label="How freshness is labelled">
       {rows.map(({ p, text }) => (
-        <li key={p.kind} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+        <li key={p.kind} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-sm text-muted transition-colors duration-200 hover:bg-surface-raised">
           <DataSourceTag provenance={p} compact />
           <span>{text}</span>
         </li>

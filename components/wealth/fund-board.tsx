@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import type { WealthBoardResponse } from "@/lib/types/api";
 import type { WealthFund, WealthQuote } from "@/lib/types/wealth";
@@ -72,10 +72,10 @@ export function FundBoard({ board, selectedId }: Props) {
   }
 
   return (
-    <section aria-labelledby="board-heading" className="space-y-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
-        <h2 id="board-heading" className="text-lg font-semibold">
-          Fund board <span className="text-sm font-normal text-muted">{funds.length} funds</span>
+    <section aria-labelledby="board-heading" className="space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        <h2 id="board-heading" className="flex items-baseline gap-2.5 text-xl font-semibold tracking-tight">
+          Fund board <span className="tabular text-sm font-normal text-muted">{funds.length} funds</span>
         </h2>
         <div className="flex flex-wrap gap-1.5">
           {tags.map((p) => (
@@ -85,7 +85,7 @@ export function FundBoard({ board, selectedId }: Props) {
       </div>
 
       {/* Table from md up. No inner scroll box: the header sticks to the page while it scrolls. */}
-      <div className="hidden overflow-x-clip rounded-lg border border-evidence-line bg-evidence md:block">
+      <div className="hidden overflow-x-clip rounded-lg border border-evidence-line bg-evidence shadow-[inset_0_1px_0_rgb(255_255_255/0.04),var(--shadow-sm)] md:block">
         <table className="w-full border-separate border-spacing-0 text-sm">
           <caption className="sr-only">
             SoDEX Wealth funds with price, change today, headline return and market hours. Column headers sort the table.
@@ -101,8 +101,9 @@ export function FundBoard({ board, selectedId }: Props) {
                     scope="col"
                     aria-sort={col.key ? ariaSort : undefined}
                     className={cn(
-                      "sticky top-14 z-10 border-b border-evidence-line bg-evidence px-3 py-2 font-medium first:rounded-tl-lg last:rounded-tr-lg lg:top-0",
+                      "sticky top-14 z-10 border-b border-evidence-line bg-surface-sunken px-3 py-2.5 font-medium first:rounded-tl-lg first:pl-4 last:rounded-tr-lg last:pr-4 lg:top-0",
                       col.align === "right" ? "text-right" : "text-left",
+                      col.key === null && "hidden xl:table-cell",
                     )}
                   >
                     {col.key ? (
@@ -110,9 +111,9 @@ export function FundBoard({ board, selectedId }: Props) {
                         type="button"
                         onClick={() => toggleSort(col.key!, col.firstDir)}
                         className={cn(
-                          "group inline-flex items-center gap-1 rounded-sm transition-colors hover:text-fg",
+                          "group inline-flex items-center gap-1 rounded-sm transition-[color,transform] duration-150 hover:text-fg active:scale-[0.98]",
                           col.align === "right" && "flex-row-reverse",
-                          active && "text-fg",
+                          active && "text-accent",
                         )}
                       >
                         {col.label}
@@ -134,34 +135,34 @@ export function FundBoard({ board, selectedId }: Props) {
               })}
             </tr>
           </thead>
-          <tbody>
-            {rows.map((f) => (
-              <BoardRow key={f.fundId} fund={f} quote={quoteFor(quotes, f.fundId)} selected={f.fundId === selectedId} />
+          <tbody className="stagger-in">
+            {rows.map((f, i) => (
+              <BoardRow key={f.fundId} index={i} fund={f} quote={quoteFor(quotes, f.fundId)} selected={f.fundId === selectedId} />
             ))}
           </tbody>
         </table>
       </div>
 
       {/* List on phones */}
-      <ul className="divide-y divide-evidence-line rounded-lg border border-evidence-line bg-evidence md:hidden">
-        {funds.map((f) => {
+      <ul className="stagger-in divide-y divide-evidence-line overflow-hidden rounded-lg border border-evidence-line bg-evidence shadow-[inset_0_1px_0_rgb(255_255_255/0.04),var(--shadow-sm)] md:hidden">
+        {funds.map((f, i) => {
           const q = quoteFor(quotes, f.fundId);
           const ret = headlineReturn(q);
           const selected = f.fundId === selectedId;
           return (
-            <li key={f.fundId}>
+            <li key={f.fundId} style={{ "--i": i } as CSSProperties}>
               <Link
                 href={fundHref(f.fundId)}
                 scroll={false}
                 aria-current={selected ? "true" : undefined}
                 className={cn(
-                  "block px-4 py-3 transition-colors duration-150 hover:bg-surface-raised active:bg-surface-raised",
-                  selected && "bg-accent-soft",
+                  "block px-4 py-3.5 transition-colors duration-150 hover:bg-surface-raised active:bg-surface-raised",
+                  selected && "bg-accent-soft shadow-[inset_3px_0_0_var(--accent)]",
                 )}
               >
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="min-w-0 truncate font-medium">{f.name}</span>
-                  <span className="tabular shrink-0 font-mono">{formatUsd(q?.price)}</span>
+                  <span className="min-w-0 truncate font-semibold">{f.name}</span>
+                  <span className="tabular shrink-0 font-mono font-medium">{formatUsd(q?.price)}</span>
                 </div>
                 <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-muted">
                   <span>{f.kindLabel}</span>
@@ -188,36 +189,68 @@ export function FundBoard({ board, selectedId }: Props) {
   );
 }
 
-function BoardRow({ fund, quote, selected }: { fund: WealthFund; quote: WealthQuote | null; selected: boolean }) {
+function BoardRow({
+  fund,
+  quote,
+  selected,
+  index,
+}: {
+  fund: WealthFund;
+  quote: WealthQuote | null;
+  selected: boolean;
+  index: number;
+}) {
   const ret = headlineReturn(quote);
-  const cell = "border-b border-evidence-line px-2.5 py-2.5 align-top transition-colors duration-150 first:pl-3 last:pr-3";
+  const cell =
+    "border-b border-evidence-line px-3 py-3 align-top transition-colors duration-150 first:pl-4 last:pr-4";
   return (
     <tr
+      style={{ "--i": index } as CSSProperties}
       className={cn(
         "group relative [&:last-child>*]:border-b-0",
         selected ? "bg-accent-soft" : "hover:bg-surface-raised",
       )}
     >
-      <th scope="row" className={cn(cell, "min-w-[8rem] text-left font-normal")}>
+      <th
+        scope="row"
+        className={cn(
+          cell,
+          "min-w-[9rem] text-left font-normal transition-shadow",
+          selected ? "shadow-[inset_3px_0_0_var(--accent)]" : "group-hover:shadow-[inset_3px_0_0_var(--line-strong)]",
+        )}
+      >
         <Link
           href={fundHref(fund.fundId)}
           scroll={false}
           aria-current={selected ? "true" : undefined}
-          className="font-medium text-fg underline-offset-4 after:absolute after:inset-0 hover:underline"
+          className={cn(
+            "font-semibold underline-offset-4 after:absolute after:inset-0 hover:underline",
+            selected ? "text-accent" : "text-fg",
+          )}
         >
           {fund.name}
         </Link>
-        <span className="block text-xs text-muted">
-          {fund.kindLabel} · {fund.shareSymbol}
+        <span className="mt-0.5 block text-xs text-muted">
+          {fund.kindLabel} · <span className="font-mono">{fund.shareSymbol}</span>
         </span>
+        {/* Below xl the Hours column is folded in here so no column ever clips. */}
+        {quote ? (
+          <StatusDot
+            className="mt-1 xl:hidden"
+            tone={marketStatusTone(quote.marketStatus)}
+            label={MARKET_STATUS_LABEL[quote.marketStatus]}
+          />
+        ) : null}
       </th>
-      <td className={cn(cell, "tabular whitespace-nowrap text-right font-mono")}>
+      <td className={cn(cell, "tabular whitespace-nowrap text-right font-mono font-medium")}>
         {formatUsd(quote?.price)}
         {fund.nav !== null ? (
-          <span className="block text-xs text-muted">NAV {formatUsd(fund.nav)}</span>
+          <span className="block text-xs font-normal text-muted">NAV {formatUsd(fund.nav)}</span>
         ) : null}
-        {fund.aum !== null ? <span className="block text-xs text-muted">AUM {formatCompact(fund.aum, { currency: true })}</span> : null}
-        <span className="block">
+        {fund.aum !== null ? (
+          <span className="block text-xs font-normal text-muted">AUM {formatCompact(fund.aum, { currency: true })}</span>
+        ) : null}
+        <span className="block font-sans font-normal">
           <StaleNote quote={quote} />
         </span>
       </td>
@@ -228,7 +261,7 @@ function BoardRow({ fund, quote, selected }: { fund: WealthFund; quote: WealthQu
         <PctValue value={ret.value} noteClassName="text-right" />
         <span className="block text-xs text-muted">{ret.label}</span>
       </td>
-      <td className={cn(cell, "whitespace-nowrap")}>
+      <td className={cn(cell, "hidden whitespace-nowrap xl:table-cell")}>
         {quote ? <StatusDot tone={marketStatusTone(quote.marketStatus)} label={MARKET_STATUS_LABEL[quote.marketStatus]} /> : "—"}
       </td>
     </tr>

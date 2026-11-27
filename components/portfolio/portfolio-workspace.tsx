@@ -1,7 +1,8 @@
 "use client";
 
-import { useId, useMemo, useRef, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useId, useMemo, useRef, useState, type CSSProperties } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Check, Plus, Trash2 } from "lucide-react";
 import type {
   PortfolioResponse,
   PortfolioReviewResponse,
@@ -22,6 +23,7 @@ import { EvaluationPanel, type MisconceptionLookup } from "@/components/scenario
 import { apiPost, apiPut, describeError } from "@/lib/client/api";
 import { formatDateTime, formatPercent, formatUsd } from "@/lib/client/format";
 import { UNUSUAL_NOTE, fundName, headlineReturn, isUnusualPct, quoteFor } from "@/lib/client/wealth";
+import { EASE_OUT, spring } from "@/lib/client/motion";
 import { cn } from "@/lib/utils";
 import { AnalysisPanel } from "./analysis-panel";
 import { DonutChart, chartSlot } from "@/components/ui/donut-chart";
@@ -38,6 +40,20 @@ const QUESTIONS = [
   "What can past returns and the weekly-buying simulation not tell you?",
   "What would make you change the plan?",
 ];
+
+const PANEL_SHADOW = "shadow-[inset_0_1px_0_rgb(255_255_255/0.04),var(--shadow-sm)]";
+
+/** Decorative step number beside a section label. The label text itself is unchanged. */
+function StepNum({ n }: { n: number }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="tabular mr-2 inline-flex size-5 items-center justify-center rounded-md bg-accent-soft align-[-2px] font-mono text-xs font-semibold text-accent"
+    >
+      {n}
+    </span>
+  );
+}
 
 interface Row {
   fundId: string;
@@ -239,11 +255,15 @@ export function PortfolioWorkspace({ board, initialPortfolios, addFundId, openId
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,8fr)_minmax(0,4fr)] lg:items-start">
       <div className="min-w-0 space-y-6">
-        <form onSubmit={save} noValidate className="space-y-6 rounded-lg border border-learner-line bg-learner p-4 sm:p-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-lg font-semibold text-learner-fg">{draft.id ? "Edit portfolio" : "New portfolio"}</h2>
+        <form
+          onSubmit={save}
+          noValidate
+          className={cn("animate-rise-in space-y-6 rounded-lg border border-learner-line bg-learner p-4 sm:p-6", PANEL_SHADOW)}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-learner-line pb-4">
+            <h2 className="text-xl font-semibold tracking-tight text-learner-fg">{draft.id ? "Edit portfolio" : "New portfolio"}</h2>
             {draft.id ? (
-              <Button type="button" variant="ghost" size="sm" onClick={startNew}>
+              <Button type="button" variant="ghost" size="sm" onClick={startNew} className="active:scale-[0.98]">
                 <Plus className="size-4" aria-hidden="true" />
                 Start a new one
               </Button>
@@ -282,21 +302,27 @@ export function PortfolioWorkspace({ board, initialPortfolios, addFundId, openId
             />
           </div>
 
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-medium">How would you buy it?</legend>
+          <fieldset className="space-y-3 border-t border-learner-line pt-6">
+            <legend className="float-left mb-3 w-full text-sm font-semibold">
+              <StepNum n={3} />
+              How would you buy it?
+            </legend>
             <RadioGroup
               value={draft.strategy}
               onValueChange={(v) => update({ strategy: v as PaperPortfolio["strategy"] })}
-              className="grid gap-2 sm:grid-cols-2"
+              className="clear-both grid gap-2 sm:grid-cols-2"
             >
               <RadioCard value="lump-sum" title="All at once" description="Put the whole amount in on day one." />
               <RadioCard value="weekly-dca" title="Weekly buying" description="Split it into equal weekly buys." />
             </RadioGroup>
           </fieldset>
 
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-            <div className="space-y-1.5">
-              <Label htmlFor={rationaleId}>Your reasoning</Label>
+          <div className="grid gap-4 border-t border-learner-line pt-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <div className="space-y-2">
+              <Label htmlFor={rationaleId} className="font-semibold">
+                <StepNum n={4} />
+                Your reasoning
+              </Label>
               <Textarea
                 id={rationaleId}
                 rows={9}
@@ -308,15 +334,26 @@ export function PortfolioWorkspace({ board, initialPortfolios, addFundId, openId
                 placeholder="Answer the questions alongside. Name the numbers you used."
                 className="bg-bg"
               />
-              <p className={cn("text-xs", showErrors && errors.rationale ? "text-danger" : "text-subtle")}>
+              <div aria-hidden="true" className="h-1 overflow-hidden rounded-full bg-surface-sunken">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-[width,background-color] duration-300 ease-out",
+                    rationaleLen >= RATIONALE_MIN ? "bg-success" : "bg-accent",
+                  )}
+                  style={{ width: `${Math.min(100, (rationaleLen / RATIONALE_MIN) * 100)}%` }}
+                />
+              </div>
+              <p className={cn("tabular text-xs", showErrors && errors.rationale ? "text-danger" : "text-subtle")}>
                 {showErrors && errors.rationale ? errors.rationale : `${rationaleLen} of ${RATIONALE_MAX} characters, at least ${RATIONALE_MIN}.`}
               </p>
             </div>
-            <div id={questionsId} className="rounded-md border border-line bg-surface p-4">
-              <p className="text-sm font-medium">Answer these in your reasoning</p>
-              <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm text-muted">
+            <div id={questionsId} className={cn("self-start rounded-lg border border-line bg-surface p-4", PANEL_SHADOW)}>
+              <p className="text-sm font-semibold">Answer these in your reasoning</p>
+              <ol className="mt-3 list-decimal space-y-2.5 pl-5 text-sm leading-snug text-muted marker:font-mono marker:text-accent">
                 {QUESTIONS.map((q) => (
-                  <li key={q}>{q}</li>
+                  <li key={q} className="pl-1">
+                    {q}
+                  </li>
                 ))}
               </ol>
             </div>
@@ -328,8 +365,14 @@ export function PortfolioWorkspace({ board, initialPortfolios, addFundId, openId
             </p>
           ) : null}
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Button type="submit" variant={current && !dirty ? "secondary" : "primary"} loading={saving} disabled={saving || (current !== null && !dirty)}>
+          <div className="flex flex-col gap-2 border-t border-learner-line pt-5 sm:flex-row sm:items-center">
+            <Button
+              type="submit"
+              variant={current && !dirty ? "secondary" : "primary"}
+              loading={saving}
+              disabled={saving || (current !== null && !dirty)}
+              className="active:scale-[0.98]"
+            >
               {saving ? "Saving…" : current && !dirty ? "Saved" : draft.id ? "Save changes" : "Save portfolio"}
             </Button>
             <Button
@@ -338,6 +381,7 @@ export function PortfolioWorkspace({ board, initialPortfolios, addFundId, openId
               onClick={submitReview}
               loading={reviewing}
               disabled={!current || dirty || reviewing}
+              className="active:scale-[0.98]"
             >
               {reviewing ? "Grading…" : "Submit for review"}
             </Button>
@@ -362,8 +406,16 @@ export function PortfolioWorkspace({ board, initialPortfolios, addFundId, openId
         )}
 
         {review ? (
-          <section aria-labelledby="review-heading" className="space-y-4 rounded-lg border border-line bg-surface p-4 sm:p-5">
-            <h2 id="review-heading" ref={evalRef} tabIndex={-1} className="text-lg font-semibold outline-none">
+          <section
+            aria-labelledby="review-heading"
+            className={cn("animate-rise-in scroll-mt-20 space-y-5 rounded-lg border border-line-strong bg-surface p-4 sm:p-6", PANEL_SHADOW)}
+          >
+            <h2
+              id="review-heading"
+              ref={evalRef}
+              tabIndex={-1}
+              className="border-b border-line pb-4 text-xl font-semibold tracking-tight outline-none"
+            >
               Your evaluation
             </h2>
             <EvaluationPanel
@@ -379,29 +431,31 @@ export function PortfolioWorkspace({ board, initialPortfolios, addFundId, openId
 
       <aside aria-labelledby="saved-heading" className="space-y-3 lg:sticky lg:top-6">
         <div className="flex items-baseline justify-between gap-2">
-          <h2 id="saved-heading" className="text-base font-semibold">
+          <h2 id="saved-heading" className="text-lg font-semibold tracking-tight">
             Saved portfolios
           </h2>
-          {portfolios.length > 0 ? <span className="text-xs text-muted">{portfolios.length}</span> : null}
+          {portfolios.length > 0 ? <span className="tabular font-mono text-xs text-muted">{portfolios.length}</span> : null}
         </div>
         {portfolios.length === 0 ? (
           <EmptyState title="Nothing saved yet" description="Portfolios you save appear here so you can reopen and improve them." />
         ) : (
-          <ul className="divide-y divide-line rounded-lg border border-line bg-surface">
-            {portfolios.map((p) => {
+          <ul className={cn("stagger-in divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface", PANEL_SHADOW)}>
+            {portfolios.map((p, i) => {
               const active = current?.portfolio.id === p.portfolio.id;
               return (
-                <li key={p.portfolio.id}>
+                <li key={p.portfolio.id} style={{ "--i": i } as CSSProperties}>
                   <button
                     type="button"
                     onClick={() => open(p)}
                     aria-current={active ? "true" : undefined}
                     className={cn(
-                      "block w-full px-4 py-3 text-left transition-colors duration-150 hover:bg-surface-raised",
-                      active && "bg-accent-soft",
+                      "block w-full px-4 py-3.5 text-left transition-[background-color,box-shadow] duration-150 hover:bg-surface-raised active:bg-surface-sunken",
+                      active
+                        ? "bg-accent-soft shadow-[inset_3px_0_0_var(--accent)]"
+                        : "hover:shadow-[inset_3px_0_0_var(--line-strong)]",
                     )}
                   >
-                    <span className="block truncate text-sm font-medium">{p.portfolio.name}</span>
+                    <span className={cn("block truncate text-sm font-semibold", active && "text-accent")}>{p.portfolio.name}</span>
                     <span className="mt-0.5 block text-xs text-muted">
                       {p.portfolio.holdings.length} fund{p.portfolio.holdings.length === 1 ? "" : "s"} ·{" "}
                       {p.portfolio.strategy === "weekly-dca" ? "weekly buying" : "all at once"} · {formatDateTime(p.portfolio.updatedAt)}
@@ -429,13 +483,14 @@ function FundPicker({
   const full = selected.length >= MAX_HOLDINGS;
   return (
     <fieldset className="min-w-0 space-y-2">
-      <legend className="text-sm font-medium">
+      <legend className="mb-1 text-sm font-semibold">
+        <StepNum n={1} />
         Pick funds <span className="font-normal text-muted">({selected.length} of {MAX_HOLDINGS})</span>
       </legend>
       {board.funds.length === 0 ? (
         <p className="text-sm text-muted">The fund board is empty right now.</p>
       ) : (
-        <ul className="max-h-80 divide-y divide-line overflow-y-auto rounded-md border border-line bg-surface scrollbar-thin">
+        <ul className={cn("max-h-96 divide-y divide-line overflow-y-auto rounded-lg border border-line bg-surface scrollbar-thin", PANEL_SHADOW)}>
           {board.funds.map((f) => {
             const on = selected.includes(f.fundId);
             const q = quoteFor(board.quotes, f.fundId);
@@ -446,8 +501,9 @@ function FundPicker({
                 <label
                   htmlFor={id}
                   className={cn(
-                    "flex cursor-pointer items-start gap-3 px-3 py-2.5 transition-colors duration-150 hover:bg-surface-raised",
-                    !on && full && "cursor-not-allowed opacity-50",
+                    "relative flex cursor-pointer items-start gap-3 px-3 py-3 transition-[background-color,box-shadow] duration-150",
+                    on ? "bg-accent-soft shadow-[inset_3px_0_0_var(--accent)]" : "hover:bg-surface-raised",
+                    !on && full && "cursor-not-allowed opacity-50 hover:bg-transparent",
                   )}
                 >
                   <input
@@ -459,8 +515,8 @@ function FundPicker({
                     className="mt-0.5 size-4 accent-[var(--accent)]"
                   />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium">{f.name}</span>
-                    <span className="block text-xs text-muted">
+                    <span className="block truncate text-sm font-semibold">{f.name}</span>
+                    <span className="tabular mt-0.5 block text-xs text-muted">
                       {f.kindLabel} · {formatUsd(q?.price)} · {ret.label}{" "}
                       {isUnusualPct(ret.value) ? (
                         <>
@@ -471,6 +527,7 @@ function FundPicker({
                       )}
                     </span>
                   </span>
+                  {on ? <Check className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" /> : null}
                 </label>
               </li>
             );
@@ -500,11 +557,16 @@ function Holdings({
   onSplit: () => void;
 }) {
   const totalId = useId();
+  const reduce = useReducedMotion() ?? false;
+  const totalTone = total === 100 ? "bg-success" : total > 100 ? "bg-danger" : "bg-accent";
   return (
     <fieldset className="min-w-0 space-y-2" aria-describedby={totalId}>
-      <legend className="text-sm font-medium">Weights (whole numbers, total 100)</legend>
+      <legend className="mb-1 text-sm font-semibold">
+        <StepNum n={2} />
+        Weights (whole numbers, total 100)
+      </legend>
       {rows.length === 0 ? (
-        <p className="rounded-md border border-dashed border-line-strong p-4 text-sm text-muted">
+        <p className="rounded-lg border border-dashed border-line-strong bg-surface/50 px-4 py-8 text-center text-sm text-muted">
           Tick funds on the left to add them here.
         </p>
       ) : (
@@ -530,14 +592,23 @@ function Holdings({
               // unallocated share drawn as a quiet neutral arc so the ring reads as "of 100"
               ...(total < 100 ? [{ label: "Not allocated", value: 100 - total, color: "var(--line-strong)" }] : []),
             ]}
-            className="py-1"
+            className="rounded-lg border border-line bg-surface py-4"
           />
-          <ul className="space-y-2">
+          <ul className="space-y-1.5">
+            <AnimatePresence initial={false}>
             {rows.map((r, i) => {
               const name = fundName(board.funds, r.fundId);
               const bad = r.weight !== "" && !isWholeWeight(r.weight);
               return (
-                <li key={r.fundId} className="animate-rise-in flex items-center gap-2">
+                <motion.li
+                  key={r.fundId}
+                  layout={!reduce}
+                  initial={reduce ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduce ? { opacity: 0 } : { opacity: 0, x: -8, transition: { duration: 0.16, ease: EASE_OUT } }}
+                  transition={spring.snappy}
+                  className="flex items-center gap-2 rounded-md border border-line bg-surface py-1 pl-3 pr-1"
+                >
                   <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ background: chartSlot(i) }} />
                   <label htmlFor={`w-${r.fundId}`} className="min-w-0 flex-1 truncate text-sm">
                     {name}
@@ -557,22 +628,29 @@ function Holdings({
                   <span className="text-sm text-muted" aria-hidden="true">
                     %
                   </span>
-                  <Button type="button" variant="ghost" size="sm" onClick={() => onRemove(r.fundId)} aria-label={`Remove ${name}`}>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => onRemove(r.fundId)} aria-label={`Remove ${name}`} className="px-2 hover:text-danger active:scale-[0.98]">
                     <Trash2 className="size-4" aria-hidden="true" />
                   </Button>
-                </li>
+                </motion.li>
               );
             })}
+            </AnimatePresence>
           </ul>
         </>
       )}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-2">
+      <div aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-surface-sunken">
+        <div
+          className={cn("h-full rounded-full transition-[width,background-color] duration-300 ease-out", totalTone)}
+          style={{ width: `${Math.min(100, total)}%` }}
+        />
+      </div>
+      <div className="flex min-h-8 flex-wrap items-center justify-between gap-2">
         <p id={totalId} className="text-sm" aria-live="polite">
           Total{" "}
-          <span className={cn("tabular font-mono", total === 100 ? "text-success" : "text-warning")}>{total}</span> of 100
+          <span className={cn("tabular font-mono text-base font-semibold", total === 100 ? "text-success" : "text-warning")}>{total}</span> of 100
         </p>
         {rows.length > 1 ? (
-          <Button type="button" variant="ghost" size="sm" onClick={onSplit}>
+          <Button type="button" variant="ghost" size="sm" onClick={onSplit} className="active:scale-[0.98]">
             Split evenly
           </Button>
         ) : null}

@@ -1,3 +1,4 @@
+import type { CSSProperties, ReactNode } from "react";
 import type { EvidencePack } from "@/lib/types/market";
 import { SnapshotCard } from "./snapshot-card";
 import { NewsCard } from "./news-card";
@@ -34,48 +35,73 @@ export function EvidenceColumn({ pack, sample, className }: Props) {
     dcaSimulations.length +
     (pack.rewardIncentives ? 1 : 0) +
     (pack.rewardFeed ? 1 : 0);
+
+  // One entry per visible block, in reading order, so the stagger has no gaps.
+  const blocks: { key: string; node: ReactNode; className?: string }[] = [];
+  if (pack.snapshots.length > 0) {
+    blocks.push({
+      key: "snapshots",
+      className: "grid gap-3 sm:grid-cols-2",
+      node: pack.snapshots.map((s) => <SnapshotCard key={s.asset} snapshot={s} />),
+    });
+  }
+  for (const series of pack.etfFlows) {
+    blocks.push({ key: `etf:${series.asset}`, node: <EtfFlowCard series={series} /> });
+  }
+  if (pack.news.length > 0) {
+    blocks.push({ key: "news", node: <NewsCard items={pack.news} /> });
+  }
+  for (const index of pack.indexes) {
+    blocks.push({ key: `index:${index.id}`, node: <IndexCard index={index} /> });
+  }
+  for (const book of pack.orderBooks) {
+    blocks.push({ key: `book:${book.market}`, node: <OrderBookCard book={book} /> });
+  }
+  if (wealthFundItems > 0) {
+    blocks.push({
+      key: "wealth-funds",
+      className: "flex flex-col gap-3",
+      node: <WealthFundsEvidence funds={wealthFunds} quotes={wealthQuotes} />,
+    });
+  }
+  for (const series of wealthPrices) {
+    blocks.push({
+      key: `price:${series.fundId}:${series.range}`,
+      node: <PriceHistoryCard series={series} name={nameOf(series.fundId)} />,
+    });
+  }
+  for (const sim of dcaSimulations) {
+    blocks.push({ key: `dca:${sim.fundId}:${sim.range}`, node: <DcaCard sim={sim} name={nameOf(sim.fundId)} /> });
+  }
+  if (pack.rewardIncentives) {
+    blocks.push({ key: "reward-incentives", node: <RewardsIncentivesCard incentives={pack.rewardIncentives} /> });
+  }
+  if (pack.rewardFeed) {
+    blocks.push({ key: "reward-feed", node: <RewardFeedCard feed={pack.rewardFeed} /> });
+  }
+
   return (
-    <section aria-labelledby="evidence-heading" className={cn("space-y-3", className)}>
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id="evidence-heading" className="text-lg font-semibold">
+    <section aria-labelledby="evidence-heading" className={cn("stagger-in flex flex-col gap-3", className)}>
+      <div className="flex items-baseline justify-between gap-3 pb-1">
+        <h2 id="evidence-heading" className="text-xl font-semibold tracking-tight">
           Evidence
         </h2>
         <p className="text-xs text-muted">
-          {count} item{count === 1 ? "" : "s"} · frozen {formatDateTime(pack.createdAt)}
+          <span className="tabular font-mono text-fg">{count}</span> item{count === 1 ? "" : "s"} · frozen{" "}
+          {formatDateTime(pack.createdAt)}
           {sample ? " · sample" : ""}
         </p>
       </div>
       {count === 0 ? (
-        <p className="rounded-md border border-dashed border-line p-4 text-sm text-muted">
+        <p className="rounded-lg border border-dashed border-line p-4 text-sm text-muted">
           This scenario has no evidence attached.
         </p>
       ) : null}
-      {pack.snapshots.length > 0 ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {pack.snapshots.map((s) => (
-            <SnapshotCard key={s.asset} snapshot={s} />
-          ))}
+      {blocks.map((b, i) => (
+        <div key={b.key} className={b.className} style={{ "--i": i + 1 } as CSSProperties}>
+          {b.node}
         </div>
-      ) : null}
-      {pack.etfFlows.map((series) => (
-        <EtfFlowCard key={series.asset} series={series} />
       ))}
-      <NewsCard items={pack.news} />
-      {pack.indexes.map((index) => (
-        <IndexCard key={index.id} index={index} />
-      ))}
-      {pack.orderBooks.map((book) => (
-        <OrderBookCard key={book.market} book={book} />
-      ))}
-      <WealthFundsEvidence funds={wealthFunds} quotes={wealthQuotes} />
-      {wealthPrices.map((series) => (
-        <PriceHistoryCard key={`${series.fundId}:${series.range}`} series={series} name={nameOf(series.fundId)} />
-      ))}
-      {dcaSimulations.map((sim) => (
-        <DcaCard key={`${sim.fundId}:${sim.range}`} sim={sim} name={nameOf(sim.fundId)} />
-      ))}
-      {pack.rewardIncentives ? <RewardsIncentivesCard incentives={pack.rewardIncentives} /> : null}
-      {pack.rewardFeed ? <RewardFeedCard feed={pack.rewardFeed} /> : null}
     </section>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ArrowRight, BookOpen, X } from "lucide-react";
 import type { WealthDcaResponse, WealthFundResponse, WealthPriceHistoryResponse } from "@/lib/types/api";
 import {
@@ -28,6 +28,7 @@ import {
   type PriceRange,
 } from "@/lib/client/wealth";
 import { useApiGet } from "@/lib/client/use-api";
+import { cn } from "@/lib/utils";
 import { SeriesLineChart } from "./line-chart";
 import { PctValue } from "./return-value";
 
@@ -60,17 +61,17 @@ export function FundDetail({ fundId }: { fundId: string }) {
     <section
       ref={ref}
       aria-labelledby="fund-heading"
-      className="animate-rise-in scroll-mt-20 rounded-lg border border-evidence-line bg-evidence p-4 shadow-sm sm:p-5"
+      className="animate-rise-in scroll-mt-20 overflow-hidden rounded-lg border border-evidence-line bg-evidence shadow-[inset_0_1px_0_rgb(255_255_255/0.04),var(--shadow-md)]"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3 border-b border-evidence-line bg-surface-sunken/60 px-4 py-3.5 sm:px-5">
         <div className="min-w-0">
           {fund.data ? (
             <>
-              <h2 id="fund-heading" className="text-lg font-semibold leading-snug">
+              <h2 id="fund-heading" className="text-xl font-semibold leading-snug tracking-tight">
                 {fund.data.name}
               </h2>
-              <p className="text-sm text-muted">
-                {fund.data.kindLabel} · {fund.data.shareSymbol}
+              <p className="mt-0.5 text-sm text-muted">
+                {fund.data.kindLabel} · <span className="font-mono">{fund.data.shareSymbol}</span>
               </p>
             </>
           ) : (
@@ -79,7 +80,7 @@ export function FundDetail({ fundId }: { fundId: string }) {
             </h2>
           )}
         </div>
-        <Button asChild variant="ghost" size="sm" aria-label="Close fund details">
+        <Button asChild variant="ghost" size="sm" aria-label="Close fund details" className="-mr-1.5 transition-transform active:scale-[0.98]">
           <Link href="/app/wealth" scroll={false}>
             <X className="size-4" aria-hidden="true" />
           </Link>
@@ -87,7 +88,8 @@ export function FundDetail({ fundId }: { fundId: string }) {
       </div>
 
       {fund.loading ? (
-        <div className="mt-4 space-y-3" aria-busy="true">
+        <div className="space-y-3 p-4 sm:p-5" aria-busy="true">
+          <Skeleton className="h-12 w-44" />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {Array.from({ length: 6 }, (_, i) => (
               <Skeleton key={i} className="h-12" />
@@ -98,7 +100,7 @@ export function FundDetail({ fundId }: { fundId: string }) {
         </div>
       ) : fund.error || !fund.data ? (
         <ErrorState
-          className="mt-4"
+          className="m-4 sm:m-5"
           title="Could not load this fund"
           description={describeError(fund.error)}
           retry={fund.retry}
@@ -115,16 +117,41 @@ function FundBody({ fundId, data, base }: { fundId: string; data: WealthFundResp
   const ret = headlineReturn(q);
   const lesson = relatedLesson(data.fundType);
   return (
-    <div className="mt-4 space-y-6">
-      <p className="text-sm leading-relaxed">{FUND_TYPE_MEANING[data.fundType]}</p>
+    <div className="stagger-in space-y-6 p-4 sm:p-5">
+      <div style={{ "--i": 0 } as CSSProperties} className="space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+          <div className="min-w-0">
+            <p className="text-sm text-muted">Price</p>
+            <p className="tabular font-mono text-4xl font-semibold leading-none tracking-tight sm:text-5xl">
+              {q?.price !== null && q?.price !== undefined ? (
+                <AnimatedNumber value={q.price} format={(n) => formatUsd(n)} />
+              ) : (
+                formatUsd(q?.price)
+              )}
+            </p>
+          </div>
+          <div className="flex flex-col items-start gap-1 sm:items-end">
+            <span
+              className={cn(
+                "tabular rounded-md px-2 py-1 font-mono text-sm font-medium",
+                tone(q?.changePct) === "success" && "bg-success-soft text-success",
+                tone(q?.changePct) === "danger" && "bg-danger-soft text-danger",
+                (tone(q?.changePct) === "default" || tone(q?.changePct) === "muted") && "bg-surface-sunken text-muted",
+              )}
+            >
+              {formatPercent(q?.changePct)} <span className="font-sans font-normal">today</span>
+            </span>
+            {q ? <StatusDot tone={marketStatusTone(q.marketStatus)} label={MARKET_STATUS_LABEL[q.marketStatus]} /> : null}
+          </div>
+        </div>
+        {q?.priceStatus === "stale" ? <p className="text-xs text-warning">Stale price</p> : null}
+        <p className="max-w-prose text-sm leading-relaxed text-muted">{FUND_TYPE_MEANING[data.fundType]}</p>
+      </div>
 
-      <div className="grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3">
-        <Stat
-          label="Price"
-          value={q?.price !== null && q?.price !== undefined ? <AnimatedNumber value={q.price} format={(n) => formatUsd(n)} /> : formatUsd(q?.price)}
-          hint={q?.priceStatus === "stale" ? "Stale price" : undefined}
-        />
-        <Stat label="Change today" value={formatPercent(q?.changePct)} tone={tone(q?.changePct)} />
+      <div
+        style={{ "--i": 1 } as CSSProperties}
+        className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-evidence-line bg-evidence-line sm:grid-cols-3 [&>*]:bg-evidence [&>*]:p-3"
+      >
         <Stat label="NAV per share" value={data.nav === null ? "—" : formatUsd(data.nav)} hint={data.nav === null ? "Set by the order book" : undefined} />
         {isUnusualPct(ret.value) ? (
           <Stat label={ret.label} value={<PctValue value={ret.value} className="text-base" />} />
@@ -151,24 +178,30 @@ function FundBody({ fundId, data, base }: { fundId: string; data: WealthFundResp
         ) : null}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        {q ? <StatusDot tone={marketStatusTone(q.marketStatus)} label={MARKET_STATUS_LABEL[q.marketStatus]} /> : null}
+      <div style={{ "--i": 2 } as CSSProperties} className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <DataSourceTag provenance={data.provenance} compact />
         {q ? <DataSourceTag provenance={q.provenance} compact /> : null}
       </div>
 
-      <PriceHistory fundId={fundId} base={base} />
-      <DcaSimulationPanel base={base} />
+      <div style={{ "--i": 3 } as CSSProperties}>
+        <PriceHistory fundId={fundId} base={base} />
+      </div>
+      <div style={{ "--i": 4 } as CSSProperties}>
+        <DcaSimulationPanel base={base} />
+      </div>
 
-      <div className="flex flex-col gap-3 border-t border-evidence-line pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        style={{ "--i": 5 } as CSSProperties}
+        className="flex flex-col gap-3 border-t border-evidence-line pt-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <Link href={lesson.href} className="inline-flex items-center gap-2 text-sm text-accent underline-offset-4 hover:underline">
           <BookOpen className="size-4" aria-hidden="true" />
           {lesson.label}
         </Link>
-        <Button asChild>
+        <Button asChild className="group transition-transform active:scale-[0.98]">
           <Link href={`/app/portfolio?add=${encodeURIComponent(fundId)}`}>
             Practise with this fund
-            <ArrowRight className="size-4" aria-hidden="true" />
+            <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
           </Link>
         </Button>
       </div>
@@ -184,8 +217,8 @@ function PriceHistory({ fundId, base }: { fundId: string; base: string }) {
   const points = (shown?.points ?? []).map((p) => ({ x: p.ts, y: p.close }));
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-end justify-between gap-2">
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-base font-semibold">Price history</h3>
         <SegmentedTabs
           label="Price history range"
@@ -195,7 +228,7 @@ function PriceHistory({ fundId, base }: { fundId: string; base: string }) {
         />
       </div>
       {res.loading && !shown ? (
-        <Skeleton className="h-52" />
+        <Skeleton className="h-56" />
       ) : res.error ? (
         <ErrorState title="Could not load the price history" description={describeError(res.error)} retry={res.retry} />
       ) : points.length < 2 ? (
@@ -209,7 +242,7 @@ function PriceHistory({ fundId, base }: { fundId: string; base: string }) {
             formatY={priceFormatter(points)}
             stale={res.loading}
           />
-          <p className="text-xs text-muted">
+          <p className="tabular text-xs text-muted">
             {formatDate(points[0].x)} to {formatDate(points[points.length - 1].x)} · {points.length} points
           </p>
         </>
@@ -224,14 +257,14 @@ function DcaSimulationPanel({ base }: { base: string }) {
   const sim = res.data;
   const points = (sim?.points ?? []).map((p) => ({ x: p.tradeDate, y: p.returnPct }));
   return (
-    <div className="space-y-2">
+    <div className="space-y-3 border-t border-evidence-line pt-6">
       <h3 className="text-base font-semibold">SoDEX weekly-buying simulation, not a forecast</h3>
-      <p className="text-sm text-muted">
+      <p className="max-w-prose text-sm text-muted">
         SoDEX&apos;s own example of buying the same amount every week for the past year. It shows the cumulative return
         so far. It is not anyone&apos;s real account and says nothing about next year.
       </p>
       {res.loading ? (
-        <Skeleton className="h-52" />
+        <Skeleton className="h-56" />
       ) : res.error ? (
         <ErrorState title="Could not load the simulation" description={describeError(res.error)} retry={res.retry} />
       ) : !sim || !sim.ready || points.length < 2 ? (
@@ -246,9 +279,9 @@ function DcaSimulationPanel({ base }: { base: string }) {
             zeroLine
             color="chart-3"
           />
-          <p className="text-sm">
-            Return over the period:{" "}
-            <PctValue value={sim.totalReturnPct} />
+          <p className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-md border border-evidence-line bg-surface-sunken/60 px-3 py-2 text-sm">
+            <span className="text-muted">Return over the period:</span>{" "}
+            <PctValue value={sim.totalReturnPct} className="text-base font-semibold" />
           </p>
         </>
       )}

@@ -4,7 +4,7 @@ export default function PortfolioLoading() {
   return (
     <div className="space-y-6" role="status" aria-busy="true" aria-label="Loading your practice portfolio">
       <div className="space-y-2">
-        <Skeleton className="h-7 w-52" />
+        <Skeleton className="h-9 w-64" />
         <Skeleton className="h-4 w-[32rem] max-w-full" />
       </div>
       <Skeleton className="h-11" />

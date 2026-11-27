@@ -62,32 +62,34 @@ export function SeriesLineChart({
   const stroke = `var(--${color})`;
 
   return (
-    <figure className={cn("relative h-52 w-full text-subtle transition-opacity duration-300", stale && "opacity-50", className)}>
+    <figure className={cn("relative h-56 w-full rounded-md border border-evidence-line bg-surface-sunken/60 pt-2 pr-1 text-subtle transition-opacity duration-300", stale && "opacity-50", className)}>
       <figcaption className="sr-only">{summary}</figcaption>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={points} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} accessibilityLayer>
           <defs>
             <linearGradient id={`fill-${gid}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={stroke} stopOpacity={0.22} />
+              <stop offset="0%" stopColor={stroke} stopOpacity={0.3} />
+              <stop offset="65%" stopColor={stroke} stopOpacity={0.06} />
               <stop offset="100%" stopColor={stroke} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="var(--chart-grid)" vertical={false} />
+          <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="2 4" vertical={false} />
           <XAxis
             dataKey="x"
             tickFormatter={formatX}
-            tick={{ fontSize: 12, fill: "currentColor" }}
-            axisLine={{ stroke: "var(--chart-axis)" }}
+            tick={{ fontSize: 11, fill: "currentColor" }}
+            axisLine={false}
             tickLine={false}
-            minTickGap={32}
+            tickMargin={6}
+            minTickGap={40}
           />
           <YAxis
             dataKey="y"
             tickFormatter={(v: number) => formatY(v)}
-            tick={{ fontSize: 12, fill: "currentColor" }}
+            tick={{ fontSize: 11, fill: "currentColor" }}
             axisLine={false}
             tickLine={false}
-            width={60}
+            width={62}
             domain={["auto", "auto"]}
           />
           {zeroLine ? <ReferenceLine y={0} stroke="var(--chart-axis)" strokeDasharray="4 4" /> : null}
@@ -111,12 +113,14 @@ export function SeriesLineChart({
             type="monotone"
             dataKey="y"
             stroke={stroke}
-            strokeWidth={2}
+            strokeWidth={2.25}
+            strokeLinecap="round"
+            strokeLinejoin="round"
             fill={`url(#fill-${gid})`}
             dot={false}
-            activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--surface)", fill: stroke }}
+            activeDot={{ r: 5, strokeWidth: 2, stroke: "var(--surface)", fill: stroke }}
             isAnimationActive={!reduce}
-            animationDuration={700}
+            animationDuration={800}
             animationEasing="ease-out"
           />
         </AreaChart>

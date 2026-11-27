@@ -29,10 +29,11 @@ export default async function PracticePortfolioPage(props: PageProps<"/app/portf
   return (
     <div className="space-y-6">
       <PageHeader
+        className="animate-rise-in [&_h1]:text-2xl [&_h1]:tracking-tight sm:[&_h1]:text-3xl"
         title="Practice portfolio"
         description="Build a mix of SoDEX Wealth funds on paper, explain your reasoning, and get it analysed and graded."
       />
-      <p className="rounded-md border border-line-strong bg-surface px-4 py-3 text-sm font-medium">
+      <p className="rounded-lg border border-line-strong bg-surface px-4 py-3 text-sm font-medium shadow-[inset_3px_0_0_var(--accent)]">
         Practice only. No money, no wallet. MarketGym never trades or holds funds.
       </p>
       {!board.ok ? (

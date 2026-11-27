@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui";
 import { ProvenanceLegend } from "@/components/marketing/provenance-legend";
 import { Faq } from "@/components/ui/faq";
 import { ScenarioLab } from "@/components/scenario/scenario-lab";
 import { HeroPreview } from "@/components/marketing/hero-preview";
+import { Reveal } from "@/components/marketing/reveal";
+import { LoopSteps } from "@/components/marketing/loop-steps";
+import { CtaChart } from "@/components/marketing/cta-chart";
 import {
   SAMPLE_EVALUATION,
   SAMPLE_MISCONCEPTIONS,
@@ -39,38 +42,48 @@ const LOOP = [
   { name: "Retain", text: "The skill comes back a day, three days and a week later." },
 ];
 
-const SOURCES: Array<{ source: string; product: string; data: string; where: string }> = [
+type Feed = { product: string; data: string; where: string };
+
+/** Two providers, eight feeds. Grouped by provider because that is how the data arrives. */
+const INTEGRATIONS: Array<{ source: string; summary: string; feeds: Feed[] }> = [
   {
     source: "SoSoValue",
-    product: "Market data",
-    data: "Prices, volume, market cap, spot ETF flows, indexes and news",
-    where: "Lessons, Scenario lab",
+    summary: "The market picture behind every lesson and scenario.",
+    feeds: [
+      { product: "Market data", data: "Prices, volume and market cap", where: "Lessons, Scenario lab" },
+      { product: "ETF flows", data: "Daily net flows for spot ETFs", where: "Lessons, Scenario lab" },
+      { product: "SSI indexes", data: "Index baskets and how they move", where: "Lessons, Scenario lab" },
+      { product: "News", data: "Current crypto headlines", where: "Lessons, Scenario lab" },
+    ],
   },
   {
     source: "SoDEX",
-    product: "Spot",
-    data: "Live order books for BTC, ETH and ANT",
-    where: "Order book gym",
-  },
-  {
-    source: "SoDEX",
-    product: "Perps",
-    data: "The ANT-USD perpetual book, next to ANT spot",
-    where: "Order book gym",
-  },
-  {
-    source: "SoDEX",
-    product: "Wealth",
-    data: "Tokenised ETFs, fund vaults and the ANT Believers Index",
-    where: "Wealth lab, practice portfolio",
-  },
-  {
-    source: "SoDEX",
-    product: "Rewards",
-    data: "Points, multipliers and reward box rules",
-    where: "Rewards lessons",
+    summary: "Live books, funds and reward rules to practise on.",
+    feeds: [
+      { product: "Spot", data: "Live order books for BTC, ETH and ANT", where: "Order book gym" },
+      { product: "Perps", data: "The ANT-USD perpetual book, next to ANT spot", where: "Order book gym" },
+      {
+        product: "Wealth",
+        data: "Tokenised ETFs, fund vaults and the ANT Believers Index",
+        where: "Wealth lab, practice portfolio",
+      },
+      { product: "Rewards", data: "Points, multipliers and reward box rules", where: "Rewards lessons" },
+    ],
   },
 ];
+
+/** Facts already stated elsewhere on this page, pulled up beside the hero. */
+const HERO_FACTS: Array<[string, string]> = [
+  ["7", "questions in the diagnostic"],
+  ["4", "things every answer is graded on"],
+  ["0", "orders, wallets or deposits"],
+];
+
+const NEVER = ["No order button", "No wallet", "No deposits", "No signals"];
+
+const SECTION = "mx-auto max-w-[var(--content-max)] px-4 py-24 sm:px-6 lg:py-32";
+const H2 = "text-2xl font-semibold tracking-tight text-balance";
+const LEAD = "mt-4 max-w-prose text-lg text-muted";
 
 const COMPARE: Array<[string, string]> = [
   ["Explains concepts with old screenshots", "Puts today's data in front of you, with its source attached"],
@@ -117,164 +130,229 @@ export default function LandingPage() {
   return (
     <>
       {/* Hero: value on the left, the real product on the right. */}
-      <section className="mx-auto grid max-w-[var(--content-max)] items-center gap-12 px-4 pb-20 pt-12 sm:px-6 sm:pt-16 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16 lg:pb-28 lg:pt-20">
-        <div className="stagger-in max-w-xl">
-          <h1 style={{ "--i": 0 } as React.CSSProperties} className="text-2xl font-semibold tracking-tight text-balance">
-            Learn to read crypto markets by doing the analysis
-          </h1>
-          <p style={{ "--i": 1 } as React.CSSProperties} className="mt-5 text-lg text-muted">
-            Real SoSoValue and SoDEX data, your written answer, and a grade you can check line by line.
-          </p>
-          <div style={{ "--i": 2 } as React.CSSProperties} className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
-            <Button asChild size="lg" className="group">
-              <Link href="/signup">
-                Start free
-                <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
+      <section className="relative overflow-hidden border-b border-line">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(var(--line-strong)_1px,transparent_1px)] [background-size:28px_28px] opacity-60 [mask-image:radial-gradient(ellipse_80%_70%_at_50%_0%,black,transparent)]"
+        />
+        <div className="relative mx-auto grid max-w-[var(--content-max)] items-center gap-14 px-4 pb-24 pt-14 sm:px-6 sm:pt-20 lg:grid-cols-[minmax(0,11fr)_minmax(0,12fr)] lg:gap-14 lg:pb-32 lg:pt-24">
+          <div className="stagger-in max-w-2xl">
+            <h1
+              style={{ "--i": 0 } as React.CSSProperties}
+              className="text-[clamp(2.5rem,1.55rem+3.6vw,4rem)] font-semibold leading-[1.03] tracking-[-0.035em] text-balance"
+            >
+              Learn to read crypto markets by <span className="text-accent">doing the analysis</span>
+            </h1>
+            <p style={{ "--i": 1 } as React.CSSProperties} className="mt-6 max-w-xl text-lg text-muted sm:text-[1.3125rem] sm:leading-8">
+              Real SoSoValue and SoDEX data, your written answer, and a grade you can check line by line.
+            </p>
+            <div style={{ "--i": 2 } as React.CSSProperties} className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <Button asChild size="lg" className="group h-12 px-6 transition-transform active:scale-[0.98]">
+                <Link href="/signup">
+                  Start free
+                  <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
+                </Link>
+              </Button>
+              <Link href="#preview" className="text-base text-muted underline-offset-4 transition-colors hover:text-fg hover:underline">
+                Try a graded sample
               </Link>
-            </Button>
-            <Link href="#preview" className="text-sm text-muted underline-offset-4 transition-colors hover:text-fg hover:underline">
-              Try a graded sample
-            </Link>
+            </div>
+            <dl
+              style={{ "--i": 3 } as React.CSSProperties}
+              className="mt-12 grid max-w-xl grid-cols-3 gap-6 border-t border-line pt-6"
+            >
+              {HERO_FACTS.map(([figure, label]) => (
+                <div key={label} className="flex flex-col-reverse gap-1">
+                  <dt className="text-sm leading-snug text-muted">{label}</dt>
+                  <dd className="font-mono text-xl font-semibold tabular-nums text-fg">{figure}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
-        </div>
-        <div className="lg:pl-8">
-          <HeroPreview />
+          <div className="lg:pl-4 lg:pr-8">
+            <HeroPreview />
+          </div>
         </div>
       </section>
 
       {/* The loop: a real sequence, shown as one connected line. */}
-      <section id="how-it-works" className="border-t border-line bg-surface-sunken">
-        <div className="mx-auto max-w-[var(--content-max)] px-4 py-20 sm:px-6 lg:py-24">
-          <h2 className="text-xl font-semibold tracking-tight">One loop per skill</h2>
-          <p className="mt-2 max-w-prose text-muted">
-            Nothing counts as mastered until it survives a review a week later.
-          </p>
-          <ol className="relative mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-6 lg:gap-6">
-            <span aria-hidden="true" className="absolute left-0 right-0 top-[15px] hidden h-px bg-line-strong lg:block" />
-            {LOOP.map((step, i) => (
-              <li key={step.name} className="relative flex gap-4 lg:block">
-                <span className="relative flex size-8 shrink-0 items-center justify-center rounded-full border border-line-strong bg-surface-sunken font-mono text-sm tabular-nums text-accent">
-                  {i + 1}
-                </span>
-                <div className="lg:mt-5">
-                  <h3 className="text-base font-semibold">{step.name}</h3>
-                  <p className="mt-1 text-sm text-muted">{step.text}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+      <section id="how-it-works" className="scroll-mt-16 border-b border-line bg-surface-sunken">
+        <div className={SECTION}>
+          <Reveal>
+            <h2 className={H2}>One loop per skill</h2>
+            <p className={LEAD}>Nothing counts as mastered until it survives a review a week later.</p>
+          </Reveal>
+          <LoopSteps steps={LOOP} />
         </div>
       </section>
 
-      {/* Where the data comes from: a table, because it is tabular. */}
-      <section className="mx-auto max-w-[var(--content-max)] px-4 py-20 sm:px-6 lg:py-24">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-16">
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight">Built on SoSoValue and SoDEX</h2>
-            <p className="mt-2 text-muted">
-              Every figure shows its source and age. Live, cached and demo data never look alike.
-            </p>
-            <ProvenanceLegend className="mt-6" />
+      {/* Where the data comes from: two providers, eight feeds. */}
+      <section id="data" className="scroll-mt-16">
+        <div className={SECTION}>
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end lg:gap-16">
+            <Reveal>
+              <h2 className={H2}>Built on SoSoValue and SoDEX</h2>
+              <p className={LEAD}>
+                Every figure shows its source and age. Live, cached and demo data never look alike.
+              </p>
+            </Reveal>
+            <Reveal delay={0.08}>
+              <ProvenanceLegend />
+            </Reveal>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <caption className="sr-only">Data sources, what they provide and where MarketGym uses them</caption>
-              <thead>
-                <tr className="border-b border-line-strong text-xs text-muted">
-                  <th scope="col" className="py-2 pr-4 font-medium">Source</th>
-                  <th scope="col" className="py-2 pr-4 font-medium">What you get</th>
-                  <th scope="col" className="hidden py-2 font-medium sm:table-cell">Where you use it</th>
-                </tr>
-              </thead>
-              <tbody>
-                {SOURCES.map((s) => (
-                  <tr key={`${s.source}-${s.product}`} className="border-b border-line align-top last:border-b-0">
-                    <th scope="row" className="whitespace-nowrap py-4 pr-4 font-medium">
-                      {s.source} <span className="font-normal text-muted">{s.product}</span>
-                    </th>
-                    <td className="py-4 pr-4">
-                      {s.data}
-                      <span className="mt-1 block text-xs text-muted sm:hidden">{s.where}</span>
-                    </td>
-                    <td className="hidden py-4 text-muted sm:table-cell">{s.where}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-12 grid gap-6 lg:grid-cols-2">
+            {INTEGRATIONS.map((group, gi) => (
+              <Reveal key={group.source} delay={gi * 0.1} className="h-full">
+                <div className="flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] transition-[border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-line-strong">
+                  <div className="flex items-baseline justify-between gap-4 border-b border-line bg-surface-raised px-5 py-5 sm:px-6">
+                    <div>
+                      <h3 className="text-xl font-semibold tracking-tight">{group.source}</h3>
+                      <p className="mt-1 text-sm text-muted">{group.summary}</p>
+                    </div>
+                    <p className="shrink-0 font-mono text-sm tabular-nums text-accent">{group.feeds.length} feeds</p>
+                  </div>
+                  <table className="w-full flex-1 text-left text-sm">
+                    <caption className="sr-only">
+                      {group.source}: what it provides and where MarketGym uses it
+                    </caption>
+                    <thead className="sr-only">
+                      <tr>
+                        <th scope="col">Feed</th>
+                        <th scope="col">What you get</th>
+                        <th scope="col">Where you use it</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.feeds.map((f) => (
+                        <tr
+                          key={f.product}
+                          className="border-b border-line align-top transition-colors duration-200 last:border-b-0 hover:bg-surface-raised"
+                        >
+                          <th scope="row" className="w-[9.5rem] py-4 pl-5 pr-4 text-base font-semibold sm:pl-6">
+                            {f.product}
+                          </th>
+                          <td className="py-4 pr-5 sm:pr-6">
+                            <span className="block text-fg">{f.data}</span>
+                            <span className="mt-1 block text-xs text-muted">{f.where}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Practice versus watching, plus the honest note about what it never does. */}
       <section className="border-y border-line bg-surface-sunken">
-        <div className="mx-auto grid max-w-[var(--content-max)] gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16 lg:py-24">
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight">Practice, not a video course</h2>
-            <dl className="mt-8 divide-y divide-line border-y border-line">
-              <div aria-hidden="true" className="hidden grid-cols-2 gap-6 py-2 text-xs text-muted sm:grid">
+        <div className={`${SECTION} grid gap-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16`}>
+          <Reveal>
+            <h2 className={H2}>Practice, not a video course</h2>
+            <dl className="mt-10 divide-y divide-line border-y border-line">
+              <div aria-hidden="true" className="hidden grid-cols-2 gap-6 py-3 text-sm text-muted sm:grid">
                 <span>A typical course</span>
-                <span>MarketGym</span>
+                <span className="font-medium text-accent">MarketGym</span>
               </div>
               {COMPARE.map(([course, gym]) => (
-                <div key={course} className="grid gap-1 py-3.5 text-sm sm:grid-cols-2 sm:gap-6">
+                <div key={course} className="grid gap-1 py-4 text-base sm:grid-cols-2 sm:gap-6">
                   <dt className="text-muted">{course}</dt>
-                  <dd className="text-fg">{gym}</dd>
+                  <dd className="font-medium text-fg">{gym}</dd>
                 </div>
               ))}
             </dl>
-          </div>
-          <div className="self-center rounded-lg border border-line bg-surface p-6">
-            <h2 className="text-lg font-semibold">It never trades</h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
-              No order button, no wallet, no deposits, no signals. MarketGym only reads public market data and grades
-              what you write about it.
-            </p>
-          </div>
+          </Reveal>
+          <Reveal delay={0.1} className="self-center">
+            <div className="rounded-xl border border-line-strong bg-surface p-7 shadow-md sm:p-8">
+              <h2 className="text-xl font-semibold tracking-tight">It never trades</h2>
+              <p className="mt-3 text-base leading-relaxed text-muted">
+                No order button, no wallet, no deposits, no signals. MarketGym only reads public market data and grades
+                what you write about it.
+              </p>
+              <ul aria-hidden="true" className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line pt-6 text-sm text-fg">
+                {NEVER.map((item) => (
+                  <li key={item} className="flex items-center gap-2.5">
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-danger-soft text-danger">
+                      <X className="size-3" strokeWidth={3} aria-hidden="true" />
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
         </div>
       </section>
 
       {/* The real Scenario lab with the sample pack. */}
       <section id="preview" className="scroll-mt-16">
-        <div className="mx-auto max-w-[var(--content-max)] px-4 py-20 sm:px-6 lg:py-24">
-          <div className="max-w-prose">
-            <h2 className="text-xl font-semibold tracking-tight">Try a scenario</h2>
-            <p className="mt-2 text-muted">
+        <div className={SECTION}>
+          <Reveal className="max-w-prose">
+            <h2 className={H2}>Try a scenario</h2>
+            <p className={LEAD}>
               This is the real Scenario lab with a sample evidence pack. Write twenty characters or more to see a
               graded result. Real scenarios use live data and grade your own words.
             </p>
-          </div>
-          <div className="mt-10 rounded-lg border border-line bg-surface-sunken p-1.5 shadow-md">
-            <div className="rounded-md bg-bg p-4 sm:p-6">
-              <ScenarioLab
-                scenario={SAMPLE_SCENARIO}
-                misconceptions={SAMPLE_MISCONCEPTIONS}
-                skillNames={SAMPLE_SKILL_NAMES}
-                preview={{ evaluation: SAMPLE_EVALUATION, ctaHref: "/signup" }}
-              />
+          </Reveal>
+          <Reveal delay={0.08} className="mt-12">
+            <div className="rounded-xl border border-line-strong bg-surface-sunken p-1.5 shadow-md">
+              <div className="rounded-lg bg-bg p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] sm:p-6">
+                <ScenarioLab
+                  scenario={SAMPLE_SCENARIO}
+                  misconceptions={SAMPLE_MISCONCEPTIONS}
+                  skillNames={SAMPLE_SKILL_NAMES}
+                  preview={{ evaluation: SAMPLE_EVALUATION, ctaHref: "/signup" }}
+                />
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-t border-line">
-        <div className="mx-auto grid max-w-[var(--content-max)] gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-16 lg:py-24">
-          <h2 className="text-xl font-semibold tracking-tight">Questions</h2>
-          <Faq items={FAQS} />
+          </Reveal>
         </div>
       </section>
 
       <section className="border-t border-line bg-surface-sunken">
-        <div className="mx-auto flex max-w-[var(--content-max)] flex-col items-start gap-5 px-4 py-20 sm:px-6 lg:py-24">
-          <h2 className="text-xl font-semibold tracking-tight text-balance">Start with the diagnostic</h2>
-          <p className="max-w-prose text-muted">
-            A few minutes, seven questions, and you get your first module. Nothing to install and no card.
-          </p>
-          <Button asChild size="lg" className="group">
-            <Link href="/signup">
-              Start free
-              <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
-            </Link>
-          </Button>
+        <div className={`${SECTION} grid gap-10 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-16`}>
+          <Reveal>
+            <h2 className={H2}>Questions</h2>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <Faq items={FAQS} />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Closing call to action on the logo's own navy and periwinkle. */}
+      <section className="border-t border-line">
+        <div className="mx-auto max-w-[var(--content-max)] px-4 py-20 sm:px-6 lg:py-28">
+          <Reveal>
+            <div className="relative grid items-center gap-10 overflow-hidden rounded-2xl border border-[#8da2ff]/25 bg-[#0b1120] px-6 py-14 shadow-md sm:px-12 sm:py-16 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:px-16 lg:py-20">
+              <div className="flex flex-col items-start gap-6">
+                <h2 className="text-[clamp(2.25rem,1.6rem+2.6vw,3.5rem)] font-semibold leading-[1.05] tracking-[-0.03em] text-balance text-white">
+                  Start with the diagnostic
+                </h2>
+                <p className="max-w-prose text-lg text-white/70">
+                  A few minutes, seven questions, and you get your first module. Nothing to install and no card.
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="group h-12 bg-[#8da2ff] px-6 text-[#0b1120] transition-transform hover:bg-[#a9b8ff] active:scale-[0.98]"
+                  >
+                    <Link href="/signup">
+                      Start free
+                      <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
+                    </Link>
+                  </Button>
+                  <Link href="/login" className="text-base text-white/70 underline-offset-4 transition-colors hover:text-white hover:underline">
+                    Log in
+                  </Link>
+                </div>
+              </div>
+              <CtaChart className="mx-auto hidden w-full max-w-sm lg:block" />
+            </div>
+          </Reveal>
         </div>
       </section>
     </>

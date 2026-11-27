@@ -8,12 +8,15 @@ import { cn } from "@/lib/utils";
 export function LessonText({ text, className }: { text: string; className?: string }) {
   const blocks = splitBlocks(text);
   return (
-    <div className={cn("space-y-3 text-sm leading-relaxed", className)}>
+    <div className={cn("space-y-4 text-[0.9375rem] leading-7 text-fg/90 sm:text-base sm:leading-7", className)}>
       {blocks.map((block, i) =>
         block.kind === "list" ? (
-          <ul key={i} className="list-disc space-y-1 pl-5">
+          <ul key={i} className="space-y-2">
             {block.items.map((item, j) => (
-              <li key={j}>{renderInline(item)}</li>
+              <li key={j} className="relative pl-5">
+                <span aria-hidden="true" className="absolute left-0.5 top-[0.7em] size-1.5 rounded-full bg-accent" />
+                {renderInline(item)}
+              </li>
             ))}
           </ul>
         ) : (

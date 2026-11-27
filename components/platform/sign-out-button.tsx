@@ -67,8 +67,12 @@ export function SignOutButton({ compact }: { compact?: boolean }) {
         onClick={signOut}
         disabled={pending}
         aria-label={compact ? "Sign out" : undefined}
+        className="group transition-[background-color,border-color,color,opacity,transform] hover:bg-danger-soft hover:text-danger active:scale-[0.98]"
       >
-        <LogOut className="size-4" aria-hidden="true" />
+        <LogOut
+          className="size-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+          aria-hidden="true"
+        />
         {compact ? null : pending ? "Signing out…" : "Sign out"}
       </Button>
     </>

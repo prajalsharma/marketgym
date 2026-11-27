@@ -12,10 +12,10 @@ export default async function LoginPage(props: PageProps<"/login">) {
   const sp = await props.searchParams;
   const next = safeNext(typeof sp.next === "string" ? sp.next : null);
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Log in</h1>
-        <p className="mt-1 text-sm text-muted">Pick up where you left off.</p>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Log in</h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted">Pick up where you left off.</p>
       </div>
       <AuthEntry mode="login" next={next} />
     </div>

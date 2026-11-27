@@ -18,7 +18,8 @@ export function Term({ explain, children, className }: Props) {
         <button
           type="button"
           className={cn(
-            "cursor-help rounded-sm underline decoration-dotted underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "cursor-help rounded-sm underline decoration-line-strong decoration-dotted underline-offset-4 outline-none",
+            "transition-[color,text-decoration-color] duration-(--duration-fast) hover:text-fg hover:decoration-accent focus-visible:ring-2 focus-visible:ring-ring",
             className,
           )}
         >

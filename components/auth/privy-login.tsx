@@ -80,12 +80,12 @@ export function PrivyLogin({ next }: Props) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <PrivyIsland onState={onState} />
       <Button
         type="button"
         size="lg"
-        className="w-full"
+        className="w-full transition-[background-color,border-color,color,opacity,scale] active:scale-[0.98]"
         onClick={() => actionsRef.current?.login()}
         disabled={!state.ready || signingIn}
         loading={signingIn}
@@ -93,7 +93,7 @@ export function PrivyLogin({ next }: Props) {
         {!state.ready ? "Loading sign-in…" : signingIn ? "Signing you in…" : "Continue with email or Google"}
       </Button>
       {failed ? (
-        <div role="alert" className="space-y-3 rounded-md border border-danger bg-danger-soft p-3 text-sm">
+        <div role="alert" className="animate-rise-in space-y-3 rounded-lg border border-danger bg-danger-soft p-3 text-sm">
           <p>{failure.message}</p>
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="secondary" size="sm" onClick={retry}>
@@ -105,7 +105,7 @@ export function PrivyLogin({ next }: Props) {
           </div>
         </div>
       ) : null}
-      <p className="text-sm text-muted">
+      <p className="border-t border-line pt-5 text-sm leading-relaxed text-muted">
         New or returning, the same button works. Sign-in is handled by Privy. No wallet is created, and MarketGym never
         trades or holds funds.
       </p>

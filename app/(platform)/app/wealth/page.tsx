@@ -18,6 +18,7 @@ export default async function WealthLabPage(props: PageProps<"/app/wealth">) {
   return (
     <div className="space-y-8">
       <PageHeader
+        className="animate-rise-in [&_h1]:text-2xl [&_h1]:tracking-tight sm:[&_h1]:text-3xl"
         title="Wealth lab"
         description="Tokenised ETFs, fund vaults and the ANT Believers Index from SoDEX Wealth. Compare how each is priced, what it costs and what past returns leave out. Read-only: MarketGym never trades or holds funds."
       />
@@ -28,9 +29,18 @@ export default async function WealthLabPage(props: PageProps<"/app/wealth">) {
               <FundDetail key={fundId} fundId={fundId} />
             </div>
           ) : (
-            <div className="hidden rounded-lg border border-dashed border-line-strong px-5 py-10 text-center lg:order-2 lg:block">
-              <p className="text-base font-medium">Pick a fund to open it</p>
-              <p className="mx-auto mt-1 max-w-xs text-sm text-muted">
+            <div className="animate-fade-in hidden rounded-lg border border-dashed border-line-strong bg-surface px-6 py-12 lg:sticky lg:top-6 lg:order-2 lg:block">
+              <svg viewBox="0 0 120 40" className="h-10 w-28 text-accent" fill="none" aria-hidden="true">
+                <path
+                  d="M2 32 L22 24 L38 28 L58 12 L76 18 L96 6 L118 10"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <p className="mt-5 text-lg font-semibold tracking-tight">Pick a fund to open it</p>
+              <p className="mt-1 max-w-xs text-sm text-muted">
                 Price history, fees, NAV against price and SoDEX&apos;s weekly-buying simulation appear here.
               </p>
             </div>
