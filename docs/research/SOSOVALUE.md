@@ -139,7 +139,7 @@ Fixtures: `lib/market-data/__fixtures__/sosovalue/*.json`. Each file holds `_sou
 | field | type | doc description |
 |---|---|---|
 | price | BigDecimal | Current price (USD) |
-| change_pct_24h | BigDecimal | 24-hour price change percentage. Unit not stated; see Ambiguities |
+| change_pct_24h | BigDecimal | 24-hour price change as a **decimal fraction** (observed 2026-11-27: BTC `0.0109` = +1.09%, cross-checked against daily klines) |
 | turnover_24h | BigDecimal | 24-hour trading volume (USD) |
 | turnover_rate | BigDecimal | Turnover rate |
 | high_24h / low_24h | BigDecimal | 24-hour high / low price |

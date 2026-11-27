@@ -11,7 +11,7 @@ import { buildEvidencePack, parseRequirement } from "@/lib/market-data/evidence"
 import { demoEtfFlows, demoIndexes, demoNews, demoSnapshot, SOSOVALUE_DOC_TIME } from "@/lib/market-data/fixtures";
 import { ETFDataService, IndexDataService, MarketSnapshotService, NewsFeedService, OrderBookService } from "@/lib/market-data/services";
 import { SoSoValueClient } from "@/lib/market-data/sosovalue/client";
-import { categoriseNews, htmlToText, toEtfFlowSeries, toNewsEvidence, truncateText } from "@/lib/market-data/sosovalue/normalise";
+import { categoriseNews, htmlToText, toEtfFlowSeries, toMarketSnapshot, toNewsEvidence, truncateText } from "@/lib/market-data/sosovalue/normalise";
 import { etfSummaryHistory, newsPage } from "@/lib/market-data/sosovalue/schemas";
 import { TokenBucket } from "@/lib/market-data/token-bucket";
 import type { DataProvenance } from "@/lib/types";
@@ -38,6 +38,12 @@ function router(handlers: Record<string, () => Response | Promise<Response>>, se
 const btcList = { code: 0, message: "success", data: [{ currency_id: "1673723677362319866", symbol: "btc", name: "Bitcoin" }, ...currenciesFixture.data] };
 
 describe("SoSoValue normalisers", () => {
+  it("converts change_pct_24h from a fraction to a percent (verified against a live response)", () => {
+    // live 2026-11-27: BTC change_pct_24h 0.0109 while daily closes moved ~+1.7%
+    const snap = toMarketSnapshot("BTC", { price: 61628.01, change_pct_24h: 0.0109, turnover_24h: 23147053339, marketcap: 1239827683079.25 } as Parameters<typeof toMarketSnapshot>[1], prov);
+    expect(snap.percentageChange24h).toBeCloseTo(1.09, 6);
+  });
+
   it("sanitises news HTML to text and truncates summaries to 600 chars", () => {
     expect(htmlToText("<p>Hello <b>world</b> &amp; friends<script>alert(1)</script></p><p>Next</p>")).toBe("Hello world & friends\nNext");
     const long = "x".repeat(2000);

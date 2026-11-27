@@ -26,8 +26,8 @@ export function toMarketSnapshot(asset: string, raw: CurrencySnapshot, provenanc
     asset,
     name: name ?? ASSET_NAMES[asset] ?? asset,
     price: raw.price ?? 0,
-    // Unit of change_pct_24h is undocumented (see research doc §4.5); passed through as given.
-    percentageChange24h: raw.change_pct_24h,
+    // change_pct_24h is a fraction (verified live 2026-11-27: BTC 0.0109 = +1.09%), as for indexes.
+    percentageChange24h: raw.change_pct_24h !== null && raw.change_pct_24h !== undefined ? raw.change_pct_24h * 100 : null,
     volume24h: raw.turnover_24h,
     marketCapitalisation: raw.marketcap,
     timestamp: provenance.asOf ?? provenance.fetchedAt,
