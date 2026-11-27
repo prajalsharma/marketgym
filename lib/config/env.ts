@@ -22,9 +22,19 @@ const schema = z.object({
     .transform((v) => v === "true" || v === "1"),
   MARKETGYM_DATA_FILE: z.string().default(".data/marketgym.json"),
   NODE_ENV: z.string().default("development"),
+  NEXT_PUBLIC_PRIVY_APP_ID: z.string().optional().or(z.literal("")),
+  DATABASE_URL: z.string().optional().or(z.literal("")),
+  DB_SCHEMA: z
+    .string()
+    .regex(/^[a-z_][a-z0-9_]{0,40}$/, "DB_SCHEMA must be a plain lowercase identifier")
+    .default("marketgym"),
+  SESSION_SECRET: z.string().optional().or(z.literal("")),
 });
 
+export type AuthMode = "privy" | "supabase" | "local";
+
 export type Env = z.infer<typeof schema> & {
+  authMode: AuthMode;
   supabaseEnabled: boolean;
   openaiEnabled: boolean;
   sosovalueEnabled: boolean;
@@ -37,9 +47,17 @@ let cached: Env | null = null;
 export function getEnv(): Env {
   if (cached) return cached;
   const parsed = schema.parse(process.env);
+  const privyReady = Boolean(parsed.NEXT_PUBLIC_PRIVY_APP_ID && parsed.DATABASE_URL);
+  if (privyReady && (!parsed.SESSION_SECRET || parsed.SESSION_SECRET.length < 32)) {
+    throw new Error("SESSION_SECRET (32+ characters) is required when Privy and DATABASE_URL are configured.");
+  }
+  const supabaseReady = Boolean(parsed.NEXT_PUBLIC_SUPABASE_URL && parsed.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const authMode: AuthMode = privyReady ? "privy" : supabaseReady ? "supabase" : "local";
   cached = {
     ...parsed,
-    supabaseEnabled: Boolean(parsed.NEXT_PUBLIC_SUPABASE_URL && parsed.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+    authMode,
+    // supabaseEnabled keeps its old meaning (Supabase Auth + storage) only in supabase mode
+    supabaseEnabled: authMode === "supabase",
     openaiEnabled: Boolean(parsed.OPENAI_API_KEY) && !parsed.DEMO_MODE,
     sosovalueEnabled: Boolean(parsed.SOSOVALUE_API_KEY) && !parsed.DEMO_MODE,
     sodexEnabled: !parsed.DEMO_MODE,

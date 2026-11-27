@@ -244,3 +244,23 @@ TTLs: wealth board 60 s, fund detail 10 min, price history 30 min, dca 6 h, rewa
 
 ### Screens (new)
 `/app/wealth` (Wealth lab: fund board, fund detail drawer with price chart + DCA chart, market status, provenance), `/app/portfolio` (practice portfolio builder + analysis + graded rationale), Order book gym gains ANT spot + ANT-USD perpetual and the spot-vs-perps exercise, scenario lab renders wealth/rewards evidence cards. Nav adds "Wealth lab" and "Practice portfolio".
+
+## Wave 2: auth + database for deployment (frozen 2026-11-27)
+
+Three persistence/auth modes, chosen in `lib/config/env.ts` (lead-owned) by which variables are set:
+
+| Mode | Enabled when | Auth | Storage |
+|---|---|---|---|
+| `privy` (production target) | `NEXT_PUBLIC_PRIVY_APP_ID` + `DATABASE_URL` + `SESSION_SECRET` | Privy (email, Google, optional EVM wallet) on the client; server verifies the Privy access token with Privy's public JWKS (`https://auth.privy.io/api/v1/apps/<appId>/jwks.json`, ES256, `aud` = app id, `iss` = `privy.io`) and issues its own httpOnly session cookie `mg_session` (HS256 JWT signed with SESSION_SECRET, 7 days, `sub` = MarketGym user uuid) | Postgres via `postgres` (postgres.js) at DATABASE_URL, all tables in schema `DB_SCHEMA` (default `marketgym`), created idempotently on first use from `lib/db/postgres/schema.sql`. The shared project's `public` schema belongs to another app: never touch it. |
+| `supabase` | Supabase vars set and Privy not configured | Supabase Auth (existing) | Supabase (existing) |
+| `local` | nothing set | single demo learner | `.data/*.json` (existing) |
+
+Privy mode details:
+- `POST /api/auth/privy` `{ accessToken }` → verify → upsert user `{ id uuid, privyDid unique, displayName }` (email only if Privy provides it; **never store wallet addresses**) → set `mg_session` → `{ ok: true, data: { userId, isNew } }`.
+- `POST /api/auth/logout` clears `mg_session` (client also calls Privy `logout()`).
+- `getCurrentUser()` reads `mg_session` in privy mode. All learner routes unchanged.
+- No Privy app secret is used anywhere.
+- Client: `PrivyProvider` mounted only when `NEXT_PUBLIC_PRIVY_APP_ID` is set, as a client "island" that reports state via a stable callback ref and publishes only when `ready/authenticated/userId` change (publishing every render caused an infinite loop in a previous project). Login methods: email, google; embedded wallets `createOnLogin: "off"`.
+- Security: server is the only DB client; every query filters by `user_id` = session user. Tables still `enable row level security` with no policies so PostgREST/anon can't read them.
+
+New env vars (server-only unless NEXT_PUBLIC): `NEXT_PUBLIC_PRIVY_APP_ID`, `DATABASE_URL`, `DB_SCHEMA` (default marketgym), `SESSION_SECRET` (≥32 chars).
