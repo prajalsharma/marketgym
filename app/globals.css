@@ -530,3 +530,105 @@
   border-bottom: 1px dotted var(--fg-subtle);
   cursor: help;
 }
+
+/* -----------------------------------------------------------------------------
+   Page choreography (CSS so it runs before hydration and never hides content
+   when JS is slow). The route template wraps each page in .page-enter: the
+   page fades up once, then its top-level sections arrive in sequence.
+   Reduced motion: the global rule above collapses all of it to instant.
+   ----------------------------------------------------------------------------- */
+@keyframes mg-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes mg-section-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.page-enter > * > * {
+  animation: mg-section-in 560ms var(--ease-out) both;
+}
+.page-enter > * > :nth-child(1) { animation-delay: 0ms; }
+.page-enter > * > :nth-child(2) { animation-delay: 70ms; }
+.page-enter > * > :nth-child(3) { animation-delay: 140ms; }
+.page-enter > * > :nth-child(4) { animation-delay: 210ms; }
+.page-enter > * > :nth-child(5) { animation-delay: 270ms; }
+.page-enter > * > :nth-child(n + 6) { animation-delay: 320ms; }
+
+/* Generic stagger for lists that should arrive in order (marketing sections, rows). */
+.stagger-in > * {
+  animation: mg-section-in 520ms var(--ease-out) both;
+  animation-delay: calc(min(var(--i, 0), 10) * 55ms);
+}
+
+/* Order book: a price level whose size changed since the last snapshot flashes once. */
+@keyframes mg-flash-bid {
+  from { background-color: var(--bid-soft); }
+  to { background-color: transparent; }
+}
+@keyframes mg-flash-ask {
+  from { background-color: var(--ask-soft); }
+  to { background-color: transparent; }
+}
+.flash-bid { animation: mg-flash-bid 900ms var(--ease-out); }
+.flash-ask { animation: mg-flash-ask 900ms var(--ease-out); }
+
+/* Soft depth for the few raised surfaces that float over content (command menu,
+   landing product frame). Solid fallback when transparency is reduced. */
+@utility surface-glass {
+  background: color-mix(in srgb, var(--surface-overlay) 82%, transparent);
+  backdrop-filter: saturate(150%) blur(16px);
+  -webkit-backdrop-filter: saturate(150%) blur(16px);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--fg) 7%, transparent),
+    var(--shadow-md);
+  @media (prefers-reduced-transparency: reduce) {
+    background: var(--surface-overlay);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* Skeleton shimmer: a soft band of light sweeps across placeholders. */
+@keyframes mg-shimmer {
+  from { background-position: 150% 0; }
+  to { background-position: -50% 0; }
+}
+.skeleton-shimmer {
+  background-color: var(--surface-raised);
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in srgb, var(--fg) 6%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: mg-shimmer 1.6s var(--ease-in-out) infinite;
+}
+
+/* Progress fills grow in from the left on first paint. */
+@keyframes mg-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.progress-fill {
+  transform-origin: left center;
+  animation: mg-grow 900ms var(--ease-out) 150ms both;
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { AuthForm } from "@/components/auth/auth-form";
+import { AuthEntry } from "@/components/auth/auth-entry";
+import { safeNext } from "@/lib/client/privy";
 
 export const metadata: Metadata = {
   title: "Log in · MarketGym",
@@ -7,14 +8,16 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default function LoginPage() {
+export default async function LoginPage(props: PageProps<"/login">) {
+  const sp = await props.searchParams;
+  const next = safeNext(typeof sp.next === "string" ? sp.next : null);
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Log in</h1>
         <p className="mt-1 text-sm text-muted">Pick up where you left off.</p>
       </div>
-      <AuthForm mode="login" />
+      <AuthEntry mode="login" next={next} />
     </div>
   );
 }

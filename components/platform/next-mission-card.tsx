@@ -16,7 +16,7 @@ export function NextMissionCard({ mission, skillName, heading = "Up next" }: Pro
   return (
     <section
       aria-labelledby="next-mission-heading"
-      className="rounded-lg border border-accent bg-accent-soft p-5 sm:p-6"
+      className="rounded-lg border border-accent/45 bg-accent-soft p-5 shadow-sm sm:p-6"
     >
       <div className="flex flex-wrap items-center gap-2">
         <h2 id="next-mission-heading" className="text-xs font-medium text-muted">
@@ -27,10 +27,10 @@ export function NextMissionCard({ mission, skillName, heading = "Up next" }: Pro
       </div>
       <p className="mt-2 text-lg font-semibold leading-snug text-balance">{mission.title}</p>
       <p className="mt-1 max-w-prose text-sm leading-relaxed text-muted">{mission.reason}</p>
-      <Button asChild size="lg" className="mt-4">
+      <Button asChild size="lg" className="group mt-4">
         <Link href={mission.href}>
           Start
-          <ArrowRight className="size-4" aria-hidden="true" />
+          <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
         </Link>
       </Button>
     </section>

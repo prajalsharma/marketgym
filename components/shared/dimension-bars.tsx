@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { Rubric } from "@/lib/types/curriculum";
 import type { RubricScores } from "@/lib/types/learning";
 import { RUBRIC_LABEL } from "@/lib/client/labels";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -20,7 +21,7 @@ const DEFAULT_MAX: Record<keyof RubricScores, number> = {
   uncertainty: 15,
 };
 
-/** Four rubric dimensions as labelled bars with points out of max. */
+/** Four rubric dimensions as labelled bars with points out of max. Bars fill one after another. */
 export function DimensionBars({ scores, rubric, className }: Props) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -30,7 +31,7 @@ export function DimensionBars({ scores, rubric, className }: Props) {
 
   return (
     <dl className={cn("space-y-3", className)}>
-      {ORDER.map((key) => {
+      {ORDER.map((key, i) => {
         const max = rubric?.dimensions.find((d) => d.key === key)?.maxPoints ?? DEFAULT_MAX[key];
         const label = rubric?.dimensions.find((d) => d.key === key)?.label ?? RUBRIC_LABEL[key];
         const value = Math.max(0, Math.min(max, scores[key]));
@@ -40,7 +41,7 @@ export function DimensionBars({ scores, rubric, className }: Props) {
             <div className="flex items-baseline justify-between gap-3 text-sm">
               <dt>{label}</dt>
               <dd className="font-mono tabular-nums text-muted">
-                <span className="text-fg">{Math.round(value)}</span> / {max}
+                <AnimatedNumber value={Math.round(value)} countUp className="text-fg" /> / {max}
               </dd>
             </div>
             <div
@@ -56,7 +57,7 @@ export function DimensionBars({ scores, rubric, className }: Props) {
                   "bar-fill h-full rounded-full",
                   share >= 0.8 ? "bg-success" : share >= 0.5 ? "bg-accent" : "bg-warning",
                 )}
-                style={{ transform: `scaleX(${ready ? share : 0})` }}
+                style={{ transform: `scaleX(${ready ? share : 0})`, transitionDelay: `${180 + i * 110}ms` }}
               />
             </div>
           </div>

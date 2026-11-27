@@ -8,6 +8,8 @@ import { dotVariants } from "./status-dot";
 const PROVIDER_LABEL: Record<DataProvenance["provider"], string> = {
   sosovalue: "SoSoValue",
   sodex: "SoDEX",
+  "sodex-wealth": "SoDEX Wealth",
+  "sodex-rewards": "SoDEX Rewards",
   fixture: "Demo fixture",
 };
 

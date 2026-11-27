@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { OrderBookSnapshot } from "@/lib/types/market";
 import { DataSourceTag } from "@/components/ui";
 import { Term } from "@/components/shared/term";
@@ -16,6 +16,13 @@ export const BOOK_TERMS = {
   tick: "The smallest price step an order can be placed at.",
   lot: "The smallest quantity step an order can be placed in.",
 };
+
+function sizesOf(book: OrderBookSnapshot): Map<string, number> {
+  const sizes = new Map<string, number>();
+  for (const l of book.asks) sizes.set(`a${l.price}`, l.quantity);
+  for (const l of book.bids) sizes.set(`b${l.price}`, l.quantity);
+  return sizes;
+}
 
 interface Props {
   book: OrderBookSnapshot;
@@ -40,6 +47,21 @@ export function OrderBookLadder({ book, levels, compact, className }: Props) {
   );
   const rowH = compact ? "h-7" : "h-8";
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  // Sizes from the previous snapshot of the same market, so changed levels can flash once.
+  // Stored as derived state (updated during render when the book changes), not in a ref.
+  const [tracked, setTracked] = useState<{ book: OrderBookSnapshot; prev: Map<string, number> | null }>({
+    book,
+    prev: null,
+  });
+  if (tracked.book !== book) {
+    setTracked({ book, prev: tracked.book.market === book.market ? sizesOf(tracked.book) : null });
+  }
+  const prev = tracked.book === book ? tracked.prev : null;
+  const changed = (side: "a" | "b", price: number, qty: number) => {
+    if (!prev) return false;
+    const before = prev.get(`${side}${price}`);
+    return before === undefined || before !== qty;
+  };
   const spreadRef = useRef<HTMLDivElement | null>(null);
 
   // Keep the spread in the middle of the viewport whenever the book changes.
@@ -82,6 +104,8 @@ export function OrderBookLadder({ book, levels, compact, className }: Props) {
               side="ask"
               best={i === 0}
               rowH={rowH}
+              flash={changed("a", lvl.price, lvl.quantity)}
+              stamp={book.timestamp}
             />
           ))}
         </ol>
@@ -110,6 +134,8 @@ export function OrderBookLadder({ book, levels, compact, className }: Props) {
               side="bid"
               best={i === 0}
               rowH={rowH}
+              flash={changed("b", lvl.price, lvl.quantity)}
+              stamp={book.timestamp}
             />
           ))}
         </ol>
@@ -145,7 +171,12 @@ function Row({
   side,
   best,
   rowH,
+  flash,
+  stamp,
 }: {
+  flash: boolean;
+  /** snapshot time; part of the key of the flash layer so a new snapshot restarts it */
+  stamp: string;
   price: string;
   qty: string;
   cum: string;
@@ -157,7 +188,7 @@ function Row({
   return (
     <li
       className={cn(
-        "relative grid grid-cols-[1fr_1fr_1fr] items-center px-2 font-mono text-xs tabular-nums",
+        "group relative grid grid-cols-[1fr_1fr_1fr] items-center px-2 font-mono text-xs tabular-nums transition-colors duration-(--duration-fast) hover:bg-surface-raised",
         rowH,
         best && "bg-surface-raised font-semibold",
       )}
@@ -165,9 +196,19 @@ function Row({
     >
       <span
         aria-hidden="true"
-        className={cn("absolute inset-y-0 right-0 opacity-15", side === "ask" ? "bg-ask" : "bg-bid")}
-        style={{ width: `${Math.round(Math.min(1, share) * 100)}%` }}
+        className={cn(
+          "absolute inset-0 origin-right transition-transform duration-500 ease-out group-hover:brightness-125",
+          side === "ask" ? "bg-ask-soft" : "bg-bid-soft",
+        )}
+        style={{ transform: `scaleX(${Math.min(1, Math.max(0, share)).toFixed(4)})` }}
       />
+      {flash ? (
+        <span
+          key={stamp}
+          aria-hidden="true"
+          className={cn("pointer-events-none absolute inset-0", side === "ask" ? "flash-ask" : "flash-bid")}
+        />
+      ) : null}
       <span className={cn("relative", side === "ask" ? "text-ask" : "text-bid")}>{price}</span>
       <span className="relative text-right">{qty}</span>
       <span className="relative text-right text-muted">{cum}</span>

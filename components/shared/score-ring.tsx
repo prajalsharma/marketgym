@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -11,7 +12,7 @@ interface Props {
   className?: string;
 }
 
-/** Score as an arc + number. Animates from 0 on mount (CSS transition, reduced-motion safe). */
+/** Score as an arc + number. Arc draws and the number rolls up from 0 on mount (reduced-motion safe). */
 export function ScoreRing({ value, size = 128, label = "Score", className }: Props) {
   const [shown, setShown] = useState(0);
   useEffect(() => {
@@ -34,7 +35,7 @@ export function ScoreRing({ value, size = 128, label = "Score", className }: Pro
       style={{ width: size, height: size }}
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={stroke} className="text-border" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} stroke="var(--line)" className="opacity-80" />
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -49,7 +50,7 @@ export function ScoreRing({ value, size = 128, label = "Score", className }: Pro
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xl font-semibold tabular-nums leading-none">{Math.round(value)}</span>
+        <AnimatedNumber value={Math.round(value)} countUp className="text-xl font-semibold leading-none" />
         <span className="mt-1 text-xs text-muted">of 100</span>
       </div>
     </div>

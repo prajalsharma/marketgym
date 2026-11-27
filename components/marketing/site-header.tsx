@@ -4,7 +4,7 @@ import { Wordmark } from "./wordmark";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur">
+    <header className="surface-sticky sticky top-0 z-(--z-sticky)">
       <div className="mx-auto flex h-14 max-w-[var(--content-max)] items-center justify-between px-4 sm:px-6">
         <Link href="/" className="rounded-sm" aria-label="MarketGym home">
           <Wordmark />
@@ -17,7 +17,7 @@ export function SiteHeader() {
             How it works
           </Link>
           <Link href="#preview" className="hidden rounded-sm px-2 py-1 text-sm text-muted hover:text-fg sm:inline-block">
-            Preview
+            Try a sample
           </Link>
           <ThemeToggle />
           <Button asChild variant="ghost" size="sm">
@@ -38,8 +38,8 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-[var(--content-max)] flex-col gap-3 px-4 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <Wordmark className="text-fg" />
         <p className="max-w-prose text-xs">
-          Market data from SoSoValue and SoDEX, shown with its source and freshness. MarketGym teaches analysis; it does
-          not trade, hold assets or give investment advice.
+          Market data from SoSoValue, SoDEX and SoDEX Wealth, shown with its source and freshness. MarketGym teaches
+          analysis; it does not trade, hold funds, connect a wallet or give investment advice.
         </p>
         <div className="flex gap-4 text-xs">
           <Link href="/login" className="hover:text-fg">

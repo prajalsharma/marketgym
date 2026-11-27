@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import Link from "next/link";
 import type {
   ProgressAttemptsResponse,
@@ -54,11 +55,21 @@ export default async function ProgressPage() {
         description={`${o.masteredCount} of ${o.totalSkills} skills mastered${o.streakDays > 0 ? ` · ${o.streakDays}-day streak` : ""}`}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Mastered" value={o.masteredCount} hint={`of ${o.totalSkills} skills`} />
-        <Stat label="Streak" value={o.streakDays} hint={o.streakDays === 1 ? "day" : "days"} />
-        <Stat label="Attempts this week" value={o.weekly.attempts} hint={o.weekly.averageScore === null ? "no scores yet" : `avg ${Math.round(o.weekly.averageScore)}`} />
-        <Stat label="Reviews due" value={reviewList.filter((r) => !r.completedAt && new Date(r.scheduledAt) <= new Date()).length} hint="ready now" />
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line lg:grid-cols-4">
+        <Stat className="bg-surface p-4" label="Mastered" value={<AnimatedNumber value={o.masteredCount} countUp />} hint={`of ${o.totalSkills} skills`} />
+        <Stat className="bg-surface p-4" label="Streak" value={<AnimatedNumber value={o.streakDays} countUp />} hint={o.streakDays === 1 ? "day" : "days"} />
+        <Stat
+          className="bg-surface p-4"
+          label="Attempts this week"
+          value={<AnimatedNumber value={o.weekly.attempts} countUp />}
+          hint={o.weekly.averageScore === null ? "no scores yet" : `avg ${Math.round(o.weekly.averageScore)}`}
+        />
+        <Stat
+          className="bg-surface p-4"
+          label="Reviews due"
+          value={<AnimatedNumber value={reviewList.filter((r) => !r.completedAt && new Date(r.scheduledAt) <= new Date()).length} countUp />}
+          hint="ready now"
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">

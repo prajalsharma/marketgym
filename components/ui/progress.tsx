@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils";
 
 /**
  * CSS-only progress bar. No Radix, no JS: a track and a fill whose width is
- * the value. Animates width with a transition (disabled under reduced motion
- * by the global rule).
+ * the value. Grows in on first paint (transform) and transitions width on
+ * change; both are disabled under reduced motion by the global rule.
  */
 const fillVariants = cva(
-  "h-full rounded-full transition-[width] duration-(--duration-slow) ease-(--ease-out)",
+  "progress-fill h-full rounded-full transition-[width] duration-(--duration-slow) ease-(--ease-out)",
   {
     variants: {
       tone: {

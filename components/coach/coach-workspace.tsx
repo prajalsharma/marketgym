@@ -197,8 +197,13 @@ export function CoachWorkspace({ skill, module, evidence, checks }: Props) {
                 <Turn key={m.id} message={m} check={m.knowledgeCheckId ? checkById.get(m.knowledgeCheckId) : undefined} citationLabel={citationLabel} />
               ))}
               {pending === "respond" ? (
-                <li className="coach-turn max-w-prose text-sm text-muted" aria-live="polite">
-                  The coach is thinking…
+                <li className="coach-turn flex items-center gap-2.5 text-sm text-muted" aria-live="polite">
+                  <span className="typing-dots inline-flex items-center gap-1 rounded-md border border-line bg-surface px-3 py-2.5" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                  The coach is reading your answer
                 </li>
               ) : null}
             </ol>

@@ -16,7 +16,7 @@ export default async function OrderBookGymPage(props: PageProps<"/app/orderbook-
     <div className="space-y-6">
       <PageHeader
         title="Order book gym"
-        description="A real SoDEX order book, read-only. Work out spread, depth and imbalance by hand, then check. The tag on the book shows where the data came from and when."
+        description="Real SoDEX order books, read-only: BTC, ETH and ANT spot, plus the ANT-USD perpetual. Work out spread, depth and imbalance by hand, then check. The tag on each book shows where the data came from and when."
       />
       {res.ok ? (
         <OrderBookGym exercises={res.data} initialExerciseId={exercise} />

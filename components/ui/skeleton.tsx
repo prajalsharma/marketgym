@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * CSS-only skeleton. Reserve the final size of the content so nothing shifts.
+ * CSS-only skeleton with a shimmer sweep (the animate-skeleton class stays as a test hook). Reserve the final size of the content so nothing shifts.
  * Pass `lines` for a text block.
  */
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -16,7 +16,7 @@ function Skeleton({ className, lines, ...props }: SkeletonProps) {
         {Array.from({ length: lines }).map((_, i) => (
           <div
             key={i}
-            className="h-3.5 animate-skeleton rounded-sm bg-surface-raised"
+            className="skeleton-shimmer animate-skeleton h-3.5 rounded-sm"
             style={{ width: i === lines - 1 ? "62%" : "100%" }}
           />
         ))}
@@ -26,7 +26,7 @@ function Skeleton({ className, lines, ...props }: SkeletonProps) {
   return (
     <div
       aria-hidden
-      className={cn("animate-skeleton rounded-sm bg-surface-raised", className)}
+      className={cn("skeleton-shimmer animate-skeleton rounded-sm", className)}
       {...props}
     />
   );

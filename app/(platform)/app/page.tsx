@@ -11,6 +11,7 @@ import { describeError } from "@/lib/client/api";
 import { firstName } from "@/lib/client/profile";
 import { goalLabel } from "@/lib/client/labels";
 import { humanise } from "@/lib/client/format";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 
 export const metadata: Metadata = { title: "Overview" };
 
@@ -49,15 +50,31 @@ export default async function OverviewPage() {
 
       <NextMissionCard mission={o.nextMission} skillName={skillNames[o.nextMission.skillId]} />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="This week" value={o.weekly.attempts} hint={o.weekly.attempts === 1 ? "attempt" : "attempts"} />
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line lg:grid-cols-4">
         <Stat
+          className="bg-surface p-4"
+          label="This week"
+          value={<AnimatedNumber value={o.weekly.attempts} countUp />}
+          hint={o.weekly.attempts === 1 ? "attempt" : "attempts"}
+        />
+        <Stat
+          className="bg-surface p-4"
           label="Average score"
-          value={o.weekly.averageScore === null ? "—" : Math.round(o.weekly.averageScore)}
+          value={o.weekly.averageScore === null ? "—" : <AnimatedNumber value={Math.round(o.weekly.averageScore)} countUp />}
           hint={o.weekly.averageScore === null ? "no graded work yet" : "out of 100, this week"}
         />
-        <Stat label="Skills improved" value={o.weekly.skillsImproved} hint="this week" />
-        <Stat label="Time practised" value={`${o.weekly.minutesEstimate} min`} hint="estimate, this week" />
+        <Stat
+          className="bg-surface p-4"
+          label="Skills improved"
+          value={<AnimatedNumber value={o.weekly.skillsImproved} countUp />}
+          hint="this week"
+        />
+        <Stat
+          className="bg-surface p-4"
+          label="Time practised"
+          value={<AnimatedNumber value={o.weekly.minutesEstimate} countUp suffix=" min" />}
+          hint="estimate, this week"
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">

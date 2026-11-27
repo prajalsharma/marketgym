@@ -31,8 +31,14 @@ export const CATEGORIES: Array<{ id: SkillCategory; label: string; hint: string 
   { id: "reasoning", label: "Reasoning", hint: "Thesis, evidence, uncertainty" },
 ];
 
+/** Labels for categories that exist in the curriculum but are not onboarding interests. */
+const EXTRA_CATEGORY_LABEL: Record<string, string> = { wealth: "Funds, yield and incentives" };
+
 export function categoryLabel(id: string): string {
-  return CATEGORIES.find((c) => c.id === id)?.label ?? id;
+  const known = CATEGORIES.find((c) => c.id === id)?.label ?? EXTRA_CATEGORY_LABEL[id];
+  if (known) return known;
+  // Sentence case for anything new, so a raw id never shows as "wealth".
+  return id.charAt(0).toUpperCase() + id.slice(1).replace(/[-_.]/g, " ");
 }
 
 export function goalLabel(id: LearningGoal): string {
@@ -82,5 +88,7 @@ export const DIFFICULTY_LABEL: Record<number, string> = {
 export const PROVIDER_LABEL: Record<string, string> = {
   sosovalue: "SoSoValue",
   sodex: "SoDEX",
+  "sodex-wealth": "SoDEX Wealth",
+  "sodex-rewards": "SoDEX Rewards",
   fixture: "Sample data",
 };

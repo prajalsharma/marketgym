@@ -11,8 +11,10 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         </Link>
         <ThemeToggle />
       </header>
-      <main className="flex flex-1 items-start justify-center px-4 py-10 sm:py-16">
-        <div className="w-full max-w-sm">{children}</div>
+      <main className="flex flex-1 items-start justify-center px-4 py-10 sm:py-[12dvh]">
+        <div className="page-enter w-full max-w-sm sm:rounded-lg sm:border sm:border-line sm:bg-surface sm:p-7 sm:shadow-md">
+          {children}
+        </div>
       </main>
     </div>
   );
