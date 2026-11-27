@@ -580,6 +580,252 @@ export const misconceptions: Misconception[] = [
       "A useful thesis names its own failure condition in advance: a specific observation, with a number and a time window, that would make you drop it. If nothing could show it wrong, it is not an analysis.",
     critical: true,
   },
+
+  // ---------------- wave 2: trading hours, index NAV, spot vs perps, wealth ----------------
+  {
+    id: "stale-price-is-current",
+    skillId: "markets.trading-hours",
+    label: "A displayed price is always current",
+    description:
+      "Treats every price on a screen as a live, tradeable quote, even when the underlying market is closed, in pre-market, or the row is flagged stale.",
+    cues: [
+      "the price right now is",
+      "it is trading at that price now",
+      "the quote is live",
+      "the shown price is live",
+      "prices update all the time",
+      "it trades around the clock",
+    ],
+    correction:
+      "Check the market status and the as-of time before you read a price. A tokenised ETF follows its home market's hours; outside them the shown price may be a last close, a pre-market print or a provider estimate. Say 'last price as of <time>, market closed' rather than 'the price is'.",
+    critical: false,
+  },
+  {
+    id: "themed-index-is-broad",
+    skillId: "indexes.index-nav",
+    label: "A themed index is a broad market index",
+    description:
+      "Assumes an index fund built around one theme or ecosystem spreads risk like a broad market index, because it holds several tokens.",
+    cues: [
+      "it covers the whole market",
+      "an index is always diversified",
+      "index means low risk",
+      "it holds many tokens so it is safe",
+      "broad exposure because it is an index",
+    ],
+    correction:
+      "An index is only as broad as its selection rule. A themed index holds assets that share one story and tend to move together, and its weights may put most of the NAV in a few names. Check the theme, the top weights and how the members co-move.",
+    critical: false,
+  },
+  {
+    id: "perps-price-is-spot-price",
+    skillId: "orderbook.spot-vs-perps",
+    label: "The perpetual price is the spot price",
+    description:
+      "Treats the price on a perpetual futures book as the same thing as the spot price for the asset, so a gap between them looks like an error or a free profit.",
+    cues: [
+      "perps price is the spot price",
+      "perp and spot are the same",
+      "the perp price is the real price",
+      "free money between spot and perp",
+      "the two prices must be equal",
+    ],
+    correction:
+      "A perpetual is a separate contract on a separate book. Its price is kept near spot by a funding mechanism, but the two books have different participants, depth and spreads, so small gaps are normal. Neither book alone is 'the' price.",
+    critical: false,
+  },
+  {
+    id: "tighter-spread-best-for-any-size",
+    skillId: "orderbook.spot-vs-perps",
+    label: "A tighter spread means the better price for any order",
+    description:
+      "Picks the book with the tighter top-of-book spread as cheaper for every order size, ignoring how much quantity sits at each level.",
+    cues: [
+      "tighter spread so it is always cheaper",
+      "the tighter book is better for any size",
+      "best price for every order",
+      "spread is all that matters",
+      "always get a better price on the tighter book",
+    ],
+    correction:
+      "The spread only prices the first small slice of an order. A larger order walks down the levels, so the book with more quote value near the top can be cheaper overall even with a wider spread. Compare spread and depth for the size you have in mind.",
+    critical: false,
+  },
+  {
+    id: "fund-types-same-risk",
+    skillId: "wealth.fund-types",
+    label: "All funds on a board carry the same kind of risk",
+    description:
+      "Treats a tokenised ETF, an escrow fund vault, a yield vault and an index fund as interchangeable 'funds' because they appear on one board.",
+    cues: [
+      "all funds are the same",
+      "a fund is a fund",
+      "they are all just funds",
+      "same risk because they are all funds",
+      "every product on the board is similar",
+    ],
+    correction:
+      "Each fund type gets its price from a different place: an ETF share tracks its listed fund and trades on an order book; a yield vault's value grows from lending interest; an index fund's NAV follows its weighted tokens; an escrow vault holds a specific asset. Name the type before you compare.",
+    critical: false,
+  },
+  {
+    id: "nav-equals-price",
+    skillId: "wealth.nav-vs-price",
+    label: "NAV and traded price are the same number",
+    description:
+      "Assumes a fund's net asset value per share and the price it trades at are always equal, so any gap is ignored or read as an error.",
+    cues: [
+      "nav is the price",
+      "the price is the nav",
+      "nav and price are the same",
+      "trades exactly at nav",
+      "price always equals nav",
+    ],
+    correction:
+      "NAV is what the fund's holdings are worth per share at a stated time; the traded price is what the last buyer paid. They can differ (a premium or discount), and they are often stamped at different times. Quote both with their times.",
+    critical: false,
+  },
+  {
+    id: "fees-dont-matter",
+    skillId: "wealth.fees",
+    label: "Small fees do not matter",
+    description:
+      "Dismisses a management or performance fee as too small to change the outcome, or treats a missing fee figure as zero.",
+    cues: [
+      "fees are too small to matter",
+      "fees do not matter",
+      "the fee is negligible",
+      "no fee listed so it is free",
+      "fees are irrelevant",
+    ],
+    correction:
+      "Fees compound: a yearly charge comes off every year's balance, so the gap grows over time. And a fee that is not shown is unknown, not zero. Work out the drag over the horizon you care about, and say when the figure is missing.",
+    critical: false,
+  },
+  {
+    id: "apy-is-guaranteed",
+    skillId: "wealth.yield-apy",
+    label: "A quoted APY is a promised return",
+    description:
+      "Reads an annual percentage yield as a rate the holder will receive, rather than an annualised estimate from a recent window that can change or turn negative.",
+    cues: [
+      "guaranteed yield",
+      "guaranteed return",
+      "you will earn",
+      "locked in apy",
+      "risk free yield",
+      "the apy is what you get",
+      "safe yield",
+    ],
+    correction:
+      "An APY is a past window's return, annualised. Lending rates change daily, rewards can stop, and a vault can lose money through a bad loan or a contract fault. Read it as 'recent rate, annualised', with its basis and time.",
+    critical: true,
+  },
+  {
+    id: "short-window-apy-is-annual",
+    skillId: "wealth.yield-apy",
+    label: "A 7-day APY is a sensible yearly figure",
+    description:
+      "Treats an APY computed from a few days of price movement as a meaningful annual return, even when it is in the hundreds or thousands of percent.",
+    cues: [
+      "it yields thousands of percent",
+      "the apy shows it will return",
+      "annual return of thousands",
+      "the weekly apy is the yearly return",
+    ],
+    correction:
+      "Annualising one week multiplies its noise by about fifty-two, with compounding on top. For a price-driven fund a single good week produces absurd APYs. Use APY only for income-type products, and prefer longer windows and ROI for everything else.",
+    critical: false,
+  },
+  {
+    id: "past-return-predicts",
+    skillId: "wealth.dca",
+    label: "Past returns predict future returns",
+    description:
+      "Uses a historical return or a back-tested DCA simulation as a forecast of what the fund will do next.",
+    cues: [
+      "it will keep returning",
+      "past performance shows it will",
+      "so it will return",
+      "returned 20% so it will",
+      "the simulation shows what i will make",
+      "history shows it will go up",
+      "it always goes up",
+    ],
+    correction:
+      "A past return describes one path that already happened. The next period has its own prices, rates and events. Use history to see how bumpy a fund has been, not to forecast it, and say so in your write-up.",
+    critical: true,
+  },
+  {
+    id: "dca-always-wins",
+    skillId: "wealth.dca",
+    label: "Regular investing always beats a lump sum",
+    description:
+      "Believes that spreading purchases over time (DCA) always produces a better result than investing the same amount at once.",
+    cues: [
+      "dca always wins",
+      "dca always beats",
+      "averaging in is always better",
+      "dca removes the risk",
+      "you cannot lose with dca",
+    ],
+    correction:
+      "DCA smooths the entry price; it does not guarantee a better one. In a market that mostly rises, a lump sum at the start usually ends higher; in one that falls then recovers, DCA can end higher. Which is better depends on the path, which nobody knows in advance.",
+    critical: false,
+  },
+  {
+    id: "more-funds-is-diversified",
+    skillId: "wealth.diversification",
+    label: "More funds means more diversification",
+    description:
+      "Counts the number of funds held as a measure of diversification, even when the funds hold overlapping or co-moving assets.",
+    cues: [
+      "more funds means diversified",
+      "i hold five funds so",
+      "spread across many funds so it is safe",
+      "lots of funds lower the risk",
+      "owning many funds diversifies",
+    ],
+    correction:
+      "Diversification depends on how the holdings move together, not how many there are. Several US tech-heavy ETFs, or several crypto-linked products, can rise and fall as one. Check the largest weight, the effective number of holdings and the themes they share.",
+    critical: false,
+  },
+  {
+    id: "incentive-volume-is-demand",
+    skillId: "wealth.incentives",
+    label: "Incentivised volume is real demand",
+    description:
+      "Reads high trading volume on a market with points multipliers or volume-based rewards as evidence of genuine interest in the asset.",
+    cues: [
+      "volume shows demand",
+      "everyone wants to trade it",
+      "high volume means people want",
+      "volume proves interest",
+      "the volume shows real buyers",
+      "popular because the volume is high",
+    ],
+    correction:
+      "When a venue pays rewards per dollar traded, some volume exists to earn the reward, including trades that buy and sell back quickly. Before reading volume as interest, check which markets carry multipliers or reward boxes, and compare with volume when the incentive was off.",
+    critical: true,
+  },
+  {
+    id: "feed-shows-typical-reward",
+    skillId: "wealth.incentives",
+    label: "A feed of wins shows the typical reward",
+    description:
+      "Takes a public feed of reward openings as a fair picture of what a typical participant receives, when the feed only lists large wins.",
+    cues: [
+      "people win big",
+      "most people win",
+      "the typical reward is big",
+      "you usually win big",
+      "everyone is winning",
+      "the feed shows what you get",
+    ],
+    correction:
+      "A feed that only shows wins above a threshold is a survivorship-biased sample: the many small results are filtered out before you see them. Without the published odds you cannot work out the expected value of a reward.",
+    critical: false,
+  },
 ];
 
 export const CRITICAL_MISCONCEPTION_IDS = misconceptions

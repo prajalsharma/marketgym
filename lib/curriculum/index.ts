@@ -16,6 +16,7 @@ import { etfModule } from "./modules/etf";
 import { indexesModule } from "./modules/indexes";
 import { orderbookModule } from "./modules/orderbook";
 import { reasoningModule } from "./modules/reasoning";
+import { wealthModule } from "./modules/wealth";
 
 const modules: Module[] = [
   marketsModule,
@@ -24,13 +25,14 @@ const modules: Module[] = [
   indexesModule,
   orderbookModule,
   reasoningModule,
+  wealthModule,
 ].sort((a, b) => a.sequence - b.sequence);
 
 const path: LearningPath = {
   id: "crypto-market-analyst-foundations",
   title: "Crypto Market Analyst Foundations",
   description:
-    "Learn to read a crypto market the way an analyst does: prices, volume and market cap; news as claims rather than facts; ETF flows and what they cannot tell you; index weights; the inside of an order book; and how to write a thesis with evidence, gaps, confidence and an invalidation. No price predictions and no trading advice.",
+    "Learn to read a crypto market the way an analyst does: prices, volume and market cap; news as claims rather than facts; ETF flows and what they cannot tell you; index weights; the inside of an order book; how to write a thesis with evidence, gaps, confidence and an invalidation; and how to read on-chain funds (NAV, fees, yield, regular-investing simulations, diversification and trading incentives) with a practice portfolio. No price predictions and no trading advice.",
   difficulty: 3,
   published: true,
   moduleIds: modules.map((m) => m.id),

@@ -3,6 +3,7 @@
  * Inferred types are structurally identical to lib/types/api.ts requests.
  */
 import { z } from "zod";
+import { orderBookMarketParam } from "@/lib/market-data/params";
 
 const skillId = z.string().trim().min(1).max(80).regex(/^[a-z0-9.-]+$/, "invalid skill id");
 const idString = z.string().trim().min(1).max(200);
@@ -13,6 +14,16 @@ export const authCredentialsSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters").max(128),
   displayName: z.string().trim().max(80).optional(),
   next: z.string().max(500).optional(),
+});
+
+// privy mode: the client's Privy access token (an ES256 JWT)
+export const privyLoginSchema = z.object({
+  accessToken: z
+    .string()
+    .trim()
+    .min(20, "accessToken is required")
+    .max(8192)
+    .regex(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/, "accessToken must be a JWT"),
 });
 
 // ---- profile ----
@@ -70,16 +81,10 @@ export const scenarioAttemptSchema = z.object({
 });
 
 // ---- orderbook gym ----
-export const marketSymbol = z
-  .string()
-  .trim()
-  .min(3)
-  .max(32)
-  .regex(/^[A-Za-z0-9]+_[A-Za-z0-9]+$/, "market must look like vBTC_vUSDC");
-
 export const orderBookExerciseSubmitSchema = z.object({
   exerciseId: idString,
-  market: marketSymbol,
+  // spot ids and perps ids ("perps:ANT-USD"), same rule as the market-data order-book param
+  market: orderBookMarketParam,
   answers: z.record(z.string().min(1).max(80), z.union([z.string().max(200), z.number().finite()])).refine((r) => Object.keys(r).length > 0, {
     message: "Answer at least one question.",
   }),
@@ -113,13 +118,38 @@ export const marketEtfQuerySchema = z.object({
     .pipe(z.enum(["BTC", "ETH"])),
 });
 
-export const marketOrderBookQuerySchema = z.object({
-  market: marketSymbol.default("vBTC_vUSDC"),
-  limit: z.coerce.number().int().min(5).max(100).default(20),
-});
-
 export const progressAttemptsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(50),
 });
+
+// ---- practice portfolio (fund existence is checked against the live Wealth board in the route) ----
+export const portfolioIdSchema = z.string().uuid("portfolio id must be a uuid");
+
+export const portfolioUpsertSchema = z
+  .object({
+    name: z.string().trim().min(1, "Give the portfolio a name.").max(80, "Keep the name under 80 characters."),
+    holdings: z
+      .array(
+        z.object({
+          fundId: z.string().trim().min(1).max(64).regex(/^[A-Za-z0-9._-]+$/, "invalid fund id"),
+          weightPct: z.number().int("Weights must be whole numbers.").min(1, "Each weight must be at least 1%.").max(100),
+        }),
+      )
+      .min(1, "Add at least one fund.")
+      .max(8, "Use at most 8 funds."),
+    strategy: z.enum(["lump-sum", "weekly-dca"]),
+    rationale: z
+      .string()
+      .trim()
+      .min(40, "Explain your thinking in at least 40 characters.")
+      .max(4000, "Keep your rationale under 4000 characters."),
+  })
+  .superRefine((v, ctx) => {
+    const ids = v.holdings.map((h) => h.fundId);
+    const dup = ids.find((id, i) => ids.indexOf(id) !== i);
+    if (dup) ctx.addIssue({ code: "custom", path: ["holdings"], message: `Fund ${dup} appears more than once.` });
+    const total = v.holdings.reduce((sum, h) => sum + h.weightPct, 0);
+    if (total !== 100) ctx.addIssue({ code: "custom", path: ["holdings"], message: `Weights must add up to 100% (they add up to ${total}%).` });
+  });
 
 export type AuthCredentials = z.infer<typeof authCredentialsSchema>;

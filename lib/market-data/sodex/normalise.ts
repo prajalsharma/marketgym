@@ -13,12 +13,37 @@ export interface SymbolMeta {
   tickSize: number;
   lotSize: number;
   status: string;
+  marketType?: "spot" | "perps";
+}
+
+/** app-level id for a perps market: "ANT-USD" → "perps:ANT-USD" */
+export const PERPS_PREFIX = "perps:";
+export const PERPS_MARKET_RE = /^perps:[A-Za-z0-9]+-[A-Za-z0-9]+$/;
+export const SPOT_MARKET_RE = /^[A-Za-z0-9]+_[A-Za-z0-9]+$/;
+
+export function isPerpsMarket(market: string): boolean {
+  return PERPS_MARKET_RE.test(market);
 }
 
 export function toSymbolMeta(s: SpotSymbol): SymbolMeta {
   return {
+    marketType: "spot",
     name: s.name,
     displayName: s.displayName,
+    baseAsset: s.baseCoin,
+    quoteAsset: s.quoteCoin,
+    tickSize: Number(s.tickSize),
+    lotSize: Number(s.stepSize),
+    status: s.status,
+  };
+}
+
+/** perps symbol (same wire shape as spot) → meta addressed as "perps:ANT-USD", label "ANT-USD perpetual" */
+export function toPerpsSymbolMeta(s: SpotSymbol): SymbolMeta {
+  return {
+    marketType: "perps",
+    name: `${PERPS_PREFIX}${s.name}`,
+    displayName: `${s.displayName || s.name} perpetual`,
     baseAsset: s.baseCoin,
     quoteAsset: s.quoteCoin,
     tickSize: Number(s.tickSize),
@@ -58,6 +83,7 @@ export function toOrderBookSnapshot(meta: SymbolMeta, raw: OrderBookRaw, provena
   const bidShareOfDepth = bidDepth + askDepth > 0 ? round(bidDepth / (bidDepth + askDepth), 6) : null;
   return {
     market: meta.name,
+    marketType: meta.marketType ?? "spot",
     displayName: meta.displayName,
     baseAsset: meta.baseAsset,
     quoteAsset: meta.quoteAsset,

@@ -131,12 +131,13 @@ describe("computeSkillProgress / computeModuleProgress", () => {
   });
 
   it("module progress is the share of practising+ skills and gates on prerequisites", () => {
-    const mastery = ["markets.price", "markets.volume", "markets.market-cap"].map((s) => makeMastery({ skillId: s, status: "practising" }));
+    // markets has 7 skills since wave 2 (trading-hours): 4 practising = 4/7 ≥ half, which opens news
+    const mastery = ["markets.price", "markets.volume", "markets.market-cap", "markets.liquidity"].map((s) => makeMastery({ skillId: s, status: "practising" }));
     const modules = computeModuleProgress(computeSkillProgress(mastery));
     const markets = modules.find((m) => m.module.id === "markets");
     const news = modules.find((m) => m.module.id === "news");
     const reasoning = modules.find((m) => m.module.id === "reasoning");
-    expect(markets?.progress).toBeCloseTo(0.5);
+    expect(markets?.progress).toBeCloseTo(4 / 7);
     expect(markets?.unlocked).toBe(true);
     expect(news?.unlocked).toBe(true);
     expect(reasoning?.unlocked).toBe(false);

@@ -1,5 +1,6 @@
 import type { Module } from "@/lib/types/curriculum";
 import { makeRubric } from "../rubric";
+import { indexNavObjective, indexNavConcept, indexNavCheck } from "./wave2-additions";
 
 export const indexesModule: Module = {
   id: "indexes",
@@ -13,6 +14,7 @@ export const indexesModule: Module = {
     "Measure concentration as the top-N weight share and explain what it does to risk.",
     "Judge whether an index spreads risk, given how its members tend to move together.",
     "Decompose an index return into weight-times-return contributions and identify which members drove it.",
+    indexNavObjective,
   ],
   prerequisiteModuleIds: ["markets"],
   skillIds: [
@@ -21,6 +23,7 @@ export const indexesModule: Module = {
     "indexes.concentration",
     "indexes.diversification",
     "indexes.performance",
+    "indexes.index-nav",
   ],
   concepts: [
     {
@@ -105,6 +108,7 @@ Guard against the error in both directions: "the index is up so the sector is up
       example:
         "Suppose an index rose 2.0% with weights A 50%, B 30%, C 20% and returns A +6%, B −2%, C −3%. Contributions: A +3.0, B −0.6, C −0.6, total +1.8% (close to 2.0% after rounding). Two of three members fell, yet the index rose. 'The sector rallied' would misdescribe this day.",
     },
+    indexNavConcept,
   ],
   knowledgeChecks: [
     {
@@ -260,6 +264,7 @@ Guard against the error in both directions: "the index is up so the sector is up
         },
       ],
     },
+    indexNavCheck,
   ],
   exercises: [
     {

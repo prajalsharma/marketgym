@@ -274,7 +274,7 @@ export async function runDiagnostic(profile: Profile, answers: DiagnosticAnswer[
         const m = getMisconception(outcome.misconceptionId);
         gaps.push(m ? `${m.label}: ${m.correction}` : outcome.misconceptionId);
       }
-    } else gaps.push(`No answer to the ${mod.title} question.`);
+    } else gaps.push(outcome ? `No answer to the ${mod.title} question.` : `${mod.title} is not covered by the diagnostic; its lessons start from the basics.`);
 
     if (mod.id === "markets" && open) {
       level = clamp(Math.round((choiceLevel + open.level) / 2), 0, 4) as Level;

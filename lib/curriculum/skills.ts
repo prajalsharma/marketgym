@@ -1,7 +1,7 @@
 import type { Skill } from "@/lib/types/curriculum";
 
 /**
- * The 32 leaf skills of "Crypto Market Analyst Foundations", grouped by module.
+ * The leaf skills of "Crypto Market Analyst Foundations", grouped by module.
  * Ids are frozen in docs/CONTRACTS.md. Difficulty rises within each module.
  */
 export const skills: Skill[] = [
@@ -65,6 +65,17 @@ export const skills: Skill[] = [
     difficulty: 2,
     parentSkillId: "markets",
     prerequisiteSkillIds: ["markets.liquidity"],
+  },
+
+  {
+    id: "markets.trading-hours",
+    name: "Trading hours and stale prices",
+    description:
+      "Tell a 24/7 crypto quote from a market-hours quote (tokenised ETFs, pre-market, closed), and say when a displayed price is stale.",
+    category: "markets",
+    difficulty: 2,
+    parentSkillId: "markets",
+    prerequisiteSkillIds: ["markets.structure"],
   },
 
   // ---------------- news ----------------
@@ -213,6 +224,17 @@ export const skills: Skill[] = [
     prerequisiteSkillIds: ["indexes.weighting"],
   },
 
+  {
+    id: "indexes.index-nav",
+    name: "Index NAV and themed indexes",
+    description:
+      "Read an index fund's NAV per share, relate it to the weights behind it, and judge how concentrated a themed index is.",
+    category: "indexes",
+    difficulty: 3,
+    parentSkillId: "indexes",
+    prerequisiteSkillIds: ["indexes.concentration"],
+  },
+
   // ---------------- orderbook ----------------
   {
     id: "orderbook.bid-ask",
@@ -285,6 +307,17 @@ export const skills: Skill[] = [
     prerequisiteSkillIds: ["orderbook.tick-lot", "orderbook.depth"],
   },
 
+  {
+    id: "orderbook.spot-vs-perps",
+    name: "Spot versus perpetual books",
+    description:
+      "Compare the spot book and the perpetual book for the same asset: spread, depth in quote value, and why a tighter book is not the better price for every size.",
+    category: "orderbook",
+    difficulty: 4,
+    parentSkillId: "orderbook",
+    prerequisiteSkillIds: ["orderbook.liquidity", "orderbook.spread"],
+  },
+
   // ---------------- reasoning ----------------
   {
     id: "reasoning.thesis",
@@ -345,6 +378,78 @@ export const skills: Skill[] = [
     difficulty: 5,
     parentSkillId: "reasoning",
     prerequisiteSkillIds: ["reasoning.uncertainty"],
+  },
+
+  // ---------------- wealth ----------------
+  {
+    id: "wealth.fund-types",
+    name: "Fund types",
+    description:
+      "Tell apart a tokenised ETF on an order book, an escrow fund vault, a bridged yield vault and an index fund, and say what drives each one's price.",
+    category: "wealth",
+    difficulty: 3,
+    parentSkillId: "wealth",
+    prerequisiteSkillIds: ["etf.aum", "indexes.weighting"],
+  },
+  {
+    id: "wealth.nav-vs-price",
+    name: "NAV versus traded price",
+    description:
+      "Separate a fund's net asset value per share from the price it trades at, and explain premiums, discounts and timing gaps.",
+    category: "wealth",
+    difficulty: 3,
+    parentSkillId: "wealth",
+    prerequisiteSkillIds: ["wealth.fund-types"],
+  },
+  {
+    id: "wealth.fees",
+    name: "Fees and fee drag",
+    description:
+      "Work out how management and performance fees compound into a drag on returns, and treat an unknown fee as unknown, not zero.",
+    category: "wealth",
+    difficulty: 3,
+    parentSkillId: "wealth",
+    prerequisiteSkillIds: ["wealth.fund-types"],
+  },
+  {
+    id: "wealth.yield-apy",
+    name: "Yield, APY and ROI",
+    description:
+      "Separate a backward-looking return (ROI) from an annualised yield (APY), explain why a 7-day APY can mislead, and name where vault yield comes from and its risks.",
+    category: "wealth",
+    difficulty: 4,
+    parentSkillId: "wealth",
+    prerequisiteSkillIds: ["wealth.fees"],
+  },
+  {
+    id: "wealth.dca",
+    name: "Regular investing (DCA) simulations",
+    description:
+      "Read a weekly equal-contribution simulation, compare it with a lump sum, and explain why past simulated returns do not predict future ones.",
+    category: "wealth",
+    difficulty: 4,
+    parentSkillId: "wealth",
+    prerequisiteSkillIds: ["wealth.yield-apy", "etf.change-over-time"],
+  },
+  {
+    id: "wealth.diversification",
+    name: "Diversifying across funds",
+    description:
+      "Measure a portfolio's concentration (largest weight, HHI, effective holdings) and explain why several correlated funds are not diversification.",
+    category: "wealth",
+    difficulty: 4,
+    parentSkillId: "wealth",
+    prerequisiteSkillIds: ["wealth.fees", "indexes.diversification"],
+  },
+  {
+    id: "wealth.incentives",
+    name: "Trading incentives and reward feeds",
+    description:
+      "Explain how points multipliers and volume-based reward boxes inflate trading volume, and why a feed of big wins is a biased sample.",
+    category: "wealth",
+    difficulty: 4,
+    parentSkillId: "wealth",
+    prerequisiteSkillIds: ["wealth.fund-types", "markets.volume"],
   },
 ];
 

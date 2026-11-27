@@ -1,6 +1,8 @@
 /**
- * Next.js 16 proxy (formerly middleware): refreshes the Supabase session and
- * protects /app/*. In local mode (no Supabase env) it passes requests through.
+ * Next.js 16 proxy (formerly middleware): protects /app/*.
+ *  - privy mode: requires a valid `mg_session` cookie, else /login?next=…
+ *  - supabase mode: refreshes the Supabase session, else /login?next=…
+ *  - local mode: passes requests through.
  */
 import type { NextRequest } from "next/server";
 import { updateSession } from "@/lib/auth/proxy-session";

@@ -123,4 +123,12 @@ export const TTL = {
   currencies: 60 * 60_000,
   orderbook: 15_000,
   symbols: 60 * 60_000,
+  // Wave 2 (docs/CONTRACTS.md)
+  perpsOrderbook: 15_000,
+  wealthBoard: 60_000,
+  wealthFund: 10 * 60_000,
+  wealthPrice: 30 * 60_000,
+  wealthDca: 6 * 60 * 60_000,
+  rewardsIncentives: 10 * 60_000,
+  rewardsFeed: 5 * 60_000,
 } as const;

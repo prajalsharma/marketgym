@@ -92,6 +92,76 @@ function conceptSummary(concept: ConceptSection, style: LearningMemory["preferre
   return `${concept.heading}. ${lines.join(" ")}${example}`;
 }
 
+function pctText(n: number): string {
+  return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
+}
+
+/** fund / yield / DCA / rewards / perps lines for wave 2 skills; null when the pack lacks the data */
+function wealthEvidenceLine(skill: Skill, pack: EvidencePack): { text: string; citation: string } | null {
+  const funds = pack.wealthFunds ?? [];
+  const quotes = pack.wealthQuotes ?? [];
+  const quoteOf = (id: string) => quotes.find((q) => q.fundId === id);
+  switch (skill.id) {
+    case "markets.trading-hours": {
+      const q = quotes.find((x) => x.marketStatus !== "always-open" && x.marketStatus !== "unknown");
+      if (q) return { text: `In the attached wealth board (${q.provenance.kind} data, ${q.provenance.provider}) ${q.fundId} shows a price of ${q.price} with market status "${q.marketStatus}" as of ${q.asOf ?? "an unstated time"}.`, citation: `wealth:fund:${q.fundId}` };
+      break;
+    }
+    case "orderbook.spot-vs-perps": {
+      const spot = pack.orderBooks.find((b) => b.marketType !== "perps" && !b.market.startsWith("perps:"));
+      const perp = pack.orderBooks.find((b) => b.marketType === "perps" || b.market.startsWith("perps:"));
+      if (spot && perp && spot.bestBid !== null && spot.bestAsk !== null && perp.bestBid !== null && perp.bestAsk !== null) {
+        return { text: `The attached ${spot.displayName} spot book (${spot.provenance.kind}) shows ${spot.bestBid} / ${spot.bestAsk}, and the ${perp.displayName} perpetual book shows ${perp.bestBid} / ${perp.bestAsk}.`, citation: `orderbook:${perp.market}` };
+      }
+      break;
+    }
+    case "indexes.index-nav":
+    case "wealth.nav-vs-price":
+    case "wealth.fund-types": {
+      const f = funds.find((x) => x.nav !== null) ?? null;
+      if (f) {
+        const q = quoteOf(f.fundId);
+        return { text: `The attached ${f.name} (${f.kindLabel}, ${f.provenance.kind} data) has a NAV of ${f.nav} per share as of ${f.asOf}${q ? `, and the board shows a price of ${q.price} as of ${q.asOf ?? "an unstated time"}` : ""}.`, citation: `wealth:fund:${f.fundId}` };
+      }
+      break;
+    }
+    case "wealth.fees": {
+      const f = funds[0];
+      if (f) return { text: `For ${f.name} the attached fund detail (${f.provenance.kind}) shows a management fee of ${f.managementFeePct === null ? "not published, which is unknown rather than zero" : `${f.managementFeePct}% a year`}.`, citation: `wealth:fund:${f.fundId}` };
+      break;
+    }
+    case "wealth.yield-apy": {
+      const q = quotes.find((x) => x.apy7dPct !== null);
+      if (q && q.apy7dPct !== null) return { text: `On the attached board (${q.provenance.kind} data) ${q.fundId} shows a 7-day APY of ${q.apy7dPct.toFixed(2)}%${q.roi1YPct !== null ? ` next to a 1-year ROI of ${pctText(q.roi1YPct)}` : ""}; the APY annualises one recent week.`, citation: `wealth:fund:${q.fundId}` };
+      break;
+    }
+    case "wealth.dca": {
+      const d = (pack.dcaSimulations ?? []).find((x) => x.totalReturnPct !== null);
+      if (d && d.totalReturnPct !== null) {
+        const first = d.points[0]?.tradeDate;
+        const last = d.points[d.points.length - 1]?.tradeDate;
+        return { text: `The attached ${d.range} DCA simulation for ${d.fundId} (${d.provenance.kind} data) shows a total return of ${pctText(d.totalReturnPct)}${first && last ? ` over weekly points from ${first} to ${last}` : ""}; it is a past back-test, not a forecast.`, citation: `wealth:dca:${d.fundId}:${d.range}` };
+      }
+      break;
+    }
+    case "wealth.diversification": {
+      if (quotes.length > 1) return { text: `The attached board (${quotes[0].provenance.kind} data) lists ${quotes.length} funds, including ${quotes.slice(0, 3).map((q) => q.fundId).join(", ")}.`, citation: "wealth:board" };
+      break;
+    }
+    case "wealth.incentives": {
+      const inc = pack.rewardIncentives;
+      if (inc && inc.multipliers.length > 0) {
+        const m = inc.multipliers[0];
+        return { text: `The attached rewards rules (${inc.provenance.kind} data) give ${inc.multipliers.length} markets a points multiplier, such as ${m.symbol} at ${m.coefficient}x${inc.volumePerBoxUsd !== null ? `, and one reward box per ${inc.volumePerBoxUsd.toLocaleString("en-US")} USD of weighted volume` : ""}; drop probabilities are ${inc.probabilitiesPublished ? "published" : "not published"}.`, citation: "rewards:incentives" };
+      }
+      break;
+    }
+    default:
+      break;
+  }
+  return null;
+}
+
 /** one grounded line from the pack relevant to the skill's category, with the evidence id it cites */
 export function evidenceLineForSkill(skill: Skill, pack: EvidencePack): { text: string; citation: string } | null {
   const snap = pack.snapshots[0];
@@ -99,6 +169,8 @@ export function evidenceLineForSkill(skill: Skill, pack: EvidencePack): { text: 
   const flow = pack.etfFlows[0];
   const index = pack.indexes[0];
   const news = pack.news[0];
+  const wealthLine = wealthEvidenceLine(skill, pack);
+  if (wealthLine) return wealthLine;
   switch (skill.category) {
     case "orderbook":
       if (book && book.bestBid !== null && book.bestAsk !== null) {

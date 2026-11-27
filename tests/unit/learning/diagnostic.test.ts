@@ -19,7 +19,8 @@ describe("getDiagnosticQuestions", () => {
     expect(qs).toHaveLength(7);
     expect(qs[6]).toMatchObject({ id: OPEN_QUESTION_ID, kind: "open", skillId: "markets.volume" });
     const modules = new Set(qs.slice(0, 6).map((q) => q.skillId.split(".")[0]));
-    expect(modules).toEqual(new Set(curriculum.modules.map((m) => m.id)));
+    // the wave 2 wealth module is reached through its prerequisites, not the onboarding diagnostic
+    expect(modules).toEqual(new Set(curriculum.modules.map((m) => m.id).filter((id) => id !== "wealth")));
     for (const q of qs.slice(0, 6)) expect(q.options?.length).toBe(4);
   });
 

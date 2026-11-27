@@ -1,7 +1,8 @@
 /**
- * Order Book Gym: five exercises graded against the OrderBookSnapshot the
+ * Order Book Gym: six exercises graded against the OrderBookSnapshot(s) the
  * learner actually saw. Tolerances: 1 tick for prices, 0.5 percentage points
- * for percentages, 0.5 % relative for quantities, exact for choices. Every
+ * for percentages (0.01 points for the two-decimal spread percentages in
+ * spot-vs-perps), 0.5 % relative for quantities, exact for choices. Every
  * explanation cites the book's real numbers.
  */
 import type { OrderBookExerciseSubmitResponse } from "@/lib/types/api";
@@ -10,6 +11,8 @@ import type { OrderBookSnapshot } from "@/lib/types/market";
 
 export const BTC_MARKET = "vBTC_vUSDC";
 export const ETH_MARKET = "vETH_vUSDC";
+export const ANT_SPOT_MARKET = "vANT_vUSDC";
+export const ANT_PERPS_MARKET = "perps:ANT-USD";
 
 type Tolerance = { kind: "tick" } | { kind: "percent-points"; value: number } | { kind: "relative"; value: number } | { kind: "exact" };
 
@@ -60,6 +63,30 @@ function hasTop(book: OrderBookSnapshot | undefined): book is OrderBookSnapshot 
 }
 
 const choice = (id: string, text: string) => ({ id, text });
+
+type TopBook = OrderBookSnapshot & { bestBid: number; bestAsk: number };
+
+/** spread as a percentage of mid, from the book's own best bid/ask */
+function spreadPctOf(b: TopBook): number {
+  return ((b.bestAsk - b.bestBid) / ((b.bestAsk + b.bestBid) / 2)) * 100;
+}
+
+/** quote value (price × quantity) of the top n levels on both sides */
+function topQuoteValue(b: OrderBookSnapshot, n: number): { bids: number; asks: number; total: number } {
+  const bids = notional(b.bids.slice(0, n));
+  const asks = notional(b.asks.slice(0, n));
+  return { bids, asks, total: bids + asks };
+}
+
+function usd(n: number): string {
+  return Math.round(n).toLocaleString("en-US");
+}
+
+function marketLabel(market: string, book: OrderBookSnapshot | undefined): string {
+  if (market === ANT_PERPS_MARKET) return "ANT-USD perpetual";
+  const known: Record<string, string> = { [BTC_MARKET]: "BTC/USDC", [ETH_MARKET]: "ETH/USDC", [ANT_SPOT_MARKET]: "ANT/USDC spot" };
+  return known[market] ?? book?.displayName ?? market;
+}
 
 const DEFINITIONS: ExerciseDefinition[] = [
   {
@@ -345,6 +372,92 @@ const DEFINITIONS: ExerciseDefinition[] = [
       },
     },
   },
+
+  {
+    exercise: {
+      id: "ob-spot-vs-perps",
+      kind: "spot-vs-perps",
+      skillIds: ["orderbook.spot-vs-perps", "orderbook.spread", "orderbook.depth"],
+      title: "Spot or perpetual?",
+      instructions:
+        "Compare the ANT/USDC spot book with the ANT-USD perpetual book. They trade the same asset on separate books. Work out each spread as a share of mid, compare the value resting near the top, and decide what a tighter book does and does not tell you. Read-only: nothing here is a suggestion to trade.",
+      markets: [ANT_SPOT_MARKET, ANT_PERPS_MARKET],
+      questions: [
+        { id: "spot-spread-pct", prompt: "What is the ANT/USDC spot spread as a percentage of mid, to 2 decimal places?", kind: "number", unit: "%" },
+        { id: "perps-spread-pct", prompt: "What is the ANT-USD perpetual spread as a percentage of mid, to 2 decimal places?", kind: "number", unit: "%" },
+        {
+          id: "tighter",
+          prompt: "Which book has the tighter spread relative to its price?",
+          kind: "choice",
+          options: [choice(ANT_SPOT_MARKET, "ANT/USDC spot"), choice(ANT_PERPS_MARKET, "ANT-USD perpetual"), choice("same", "They are the same")],
+        },
+        {
+          id: "more-depth",
+          prompt: "Which book holds more quote value (price × quantity, both sides) in its top 10 levels?",
+          kind: "choice",
+          options: [choice(ANT_SPOT_MARKET, "ANT/USDC spot"), choice(ANT_PERPS_MARKET, "ANT-USD perpetual")],
+        },
+        {
+          id: "tighter-not-better",
+          prompt: "Why does a tighter spread not, by itself, mean a better price for every order size?",
+          kind: "choice",
+          options: [
+            choice("size-walks-book", "The spread only prices the first slice; a larger order walks deeper levels, so depth near the top decides its average price"),
+            choice("perps-fake", "Perpetual prices are not real prices"),
+            choice("spread-fee", "The spread is a fee that is charged twice on perpetuals"),
+            choice("always-better", "It does: the tighter book is always cheaper"),
+          ],
+        },
+      ],
+      hints: [
+        "Spread % = (best ask − best bid) ÷ mid × 100, where mid is halfway between them. Do it for each book.",
+        "Depth must be compared in money, not in tokens or contracts: add price × quantity over the top ten bids and top ten asks.",
+        "Imagine buying a large amount: you pay the best ask only until that level runs out, then the next level, and so on. A book with tiny sizes at a tight spread can end up costing more. Funding on the perpetual is a further cost the book does not show.",
+      ],
+    },
+    expected: {
+      "spot-spread-pct": (books) => {
+        const b = books[ANT_SPOT_MARKET];
+        if (!hasTop(b)) return null;
+        const v = spreadPctOf(b);
+        return { value: v, display: `${v.toFixed(2)}%`, tolerance: { kind: "percent-points", value: 0.01 }, explanation: `Spot: (${formatPrice(b, b.bestAsk)} − ${formatPrice(b, b.bestBid)}) ÷ mid ${((b.bestAsk + b.bestBid) / 2).toFixed(3)} × 100 = ${v.toFixed(4)}%, which is ${v.toFixed(2)}% to 2 dp.` };
+      },
+      "perps-spread-pct": (books) => {
+        const b = books[ANT_PERPS_MARKET];
+        if (!hasTop(b)) return null;
+        const v = spreadPctOf(b);
+        return { value: v, display: `${v.toFixed(2)}%`, tolerance: { kind: "percent-points", value: 0.01 }, explanation: `Perpetual: (${formatPrice(b, b.bestAsk)} − ${formatPrice(b, b.bestBid)}) ÷ mid ${((b.bestAsk + b.bestBid) / 2).toFixed(3)} × 100 = ${v.toFixed(4)}%, which is ${v.toFixed(2)}% to 2 dp.` };
+      },
+      tighter: (books) => {
+        const s = books[ANT_SPOT_MARKET];
+        const p = books[ANT_PERPS_MARKET];
+        if (!hasTop(s) || !hasTop(p)) return null;
+        const rs = spreadPctOf(s);
+        const rp = spreadPctOf(p);
+        const winner = Math.abs(rs - rp) < 1e-9 ? "same" : rs < rp ? ANT_SPOT_MARKET : ANT_PERPS_MARKET;
+        const display = winner === "same" ? "They are the same" : winner === ANT_SPOT_MARKET ? "ANT/USDC spot" : "ANT-USD perpetual";
+        return { value: winner, display, tolerance: { kind: "exact" }, explanation: `Spot spread ${formatPrice(s, s.bestAsk - s.bestBid)} on ${formatPrice(s, s.bestBid)} / ${formatPrice(s, s.bestAsk)} = ${rs.toFixed(4)}% of mid; perpetual spread ${formatPrice(p, p.bestAsk - p.bestBid)} on ${formatPrice(p, p.bestBid)} / ${formatPrice(p, p.bestAsk)} = ${rp.toFixed(4)}% of mid.` };
+      },
+      "more-depth": (books) => {
+        const s = books[ANT_SPOT_MARKET];
+        const p = books[ANT_PERPS_MARKET];
+        if (!hasTop(s) || !hasTop(p)) return null;
+        const vs = topQuoteValue(s, 10);
+        const vp = topQuoteValue(p, 10);
+        const winner = vs.total >= vp.total ? ANT_SPOT_MARKET : ANT_PERPS_MARKET;
+        return { value: winner, display: winner === ANT_SPOT_MARKET ? "ANT/USDC spot" : "ANT-USD perpetual", tolerance: { kind: "exact" }, explanation: `Top 10 levels, price × quantity: spot ≈ ${usd(vs.bids)} bids + ${usd(vs.asks)} asks = ${usd(vs.total)} USDC; perpetual ≈ ${usd(vp.bids)} + ${usd(vp.asks)} = ${usd(vp.total)} USDC.` };
+      },
+      "tighter-not-better": (books) => {
+        const s = books[ANT_SPOT_MARKET];
+        const p = books[ANT_PERPS_MARKET];
+        if (!hasTop(s) || !hasTop(p)) return null;
+        const tight = spreadPctOf(p) <= spreadPctOf(s) ? p : s;
+        const tightMarket = tight === p ? ANT_PERPS_MARKET : ANT_SPOT_MARKET;
+        const top = tight.asks[0];
+        return { value: "size-walks-book", display: "The spread only prices the first slice; depth decides a larger order's average price", tolerance: { kind: "exact" }, explanation: `On the tighter ${marketLabel(tightMarket, tight)} book only ${fmtQty(tight, top.quantity)} rests at the best ask ${formatPrice(tight, top.price)}; anything larger fills at the next levels. Compare spread and depth for your size; the perpetual also carries funding, which no order book shows.` };
+      },
+    },
+  },
 ];
 
 export function listOrderBookExercises(): OrderBookExercise[] {
@@ -402,10 +515,24 @@ export function gradeOrderBookExercise(
 ): { score: number; results: OrderBookExerciseSubmitResponse["results"] } {
   const def = DEFINITIONS.find((d) => d.exercise.id === exercise.id);
   if (!def) throw new Error(`unknown order book exercise ${exercise.id}`);
-  const primaryBook = books[exercise.markets[0]];
+  // grade only against this exercise's own markets (BTC exercises read BTC; spot-vs-perps reads vANT_vUSDC + perps:ANT-USD)
+  const scoped: Record<string, OrderBookSnapshot> = {};
+  for (const m of def.exercise.markets) if (books[m]) scoped[m] = books[m];
+  const missing = def.exercise.markets.filter((m) => !hasTop(scoped[m]));
+  if (missing.length > 0) {
+    const names = missing.map((m) => marketLabel(m, books[m])).join(" and ");
+    const results = exercise.questions.map((q) => ({
+      questionId: q.id,
+      correct: false,
+      expected: "n/a",
+      explanation: `This exercise needs the ${def.exercise.markets.map((m) => marketLabel(m, books[m])).join(" and ")} book${def.exercise.markets.length > 1 ? "s" : ""}, but the ${names} book ${missing.length > 1 ? "were" : "was"} missing or had no best bid and ask, so it cannot be graded. Reload the books and try again.`,
+    }));
+    return { score: 0, results };
+  }
+  const primaryBook = scoped[def.exercise.markets[0]];
   const results: OrderBookExerciseSubmitResponse["results"] = [];
   for (const q of exercise.questions) {
-    const expected = def.expected[q.id]?.(books) ?? null;
+    const expected = def.expected[q.id]?.(scoped) ?? null;
     if (!expected) {
       results.push({ questionId: q.id, correct: false, expected: "n/a", explanation: `The order book for ${exercise.markets.join(" / ")} is missing a top of book, so this question cannot be graded.` });
       continue;

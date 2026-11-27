@@ -14,6 +14,7 @@ import type { Module, Skill } from "@/lib/types/curriculum";
 import type { DiagnosticResult, MasteryRecord, MasteryStatus, NextMission, Profile, Review, ScenarioAttempt } from "@/lib/types/learning";
 import { misconceptionOccurrences, recurringMisconceptions } from "./memory";
 import { orderBookExercisesForSkill } from "./orderbook-exercises";
+import { LEARNER_INPUT_TEMPLATE_IDS, labTemplatesForSkill } from "./scenario-generator";
 
 const PRACTISING_OR_BETTER: ReadonlySet<MasteryStatus> = new Set<MasteryStatus>(["practising", "mastered"]);
 const MASTERY_SCORE = 80;
@@ -31,6 +32,35 @@ export function hrefReview(reviewId: string): string {
   return `/app/review/${encodeURIComponent(reviewId)}`;
 }
 export const HREF_ONBOARDING = "/app/onboarding";
+export const HREF_PORTFOLIO = "/app/portfolio";
+export function hrefWealth(fundId: string): string {
+  return `/app/wealth?fund=${encodeURIComponent(fundId)}`;
+}
+
+/**
+ * Wealth reading skills and the fund whose real data illustrates the lesson
+ * (fund ids from the SoDEX Wealth board). The lesson stays at /app/learn; the
+ * frontend can offer this link as "see it in the Wealth lab".
+ */
+const WEALTH_LESSON_FUNDS: Record<string, string> = {
+  "wealth.fund-types": "antb",
+  "wealth.nav-vs-price": "antb",
+  "wealth.yield-apy": "Morpho-Earn",
+  "wealth.dca": "vVOO",
+  "indexes.index-nav": "antb",
+  "markets.trading-hours": "vQQQ",
+};
+
+/** `/app/wealth?fund=<id>` for skills taught with a fund's real data, else null */
+export function wealthLabHrefForSkill(skillId: string): string | null {
+  const fund = WEALTH_LESSON_FUNDS[skillId];
+  return fund ? hrefWealth(fund) : null;
+}
+
+/** skills practised by reviewing the learner's own practice portfolio */
+export function isPortfolioSkill(skillId: string): boolean {
+  return listExerciseTemplates({ skillId }).some((t) => LEARNER_INPUT_TEMPLATE_IDS.has(t.id) && t.skillIds.includes(skillId));
+}
 
 /** modules by sequence */
 export function orderedModules(): Module[] {
@@ -155,9 +185,16 @@ export function unresolvedRecurringMisconceptions(
   return out;
 }
 
-/** written exercises for the skill (the orderbook module's templates are kind "orderbook" but are answered the same way) */
+/** written exercises the scenario lab can serve for the skill (orderbook templates are answered the same way; the portfolio review is not lab-servable) */
 function scenarioTemplatesFor(skillId: string) {
-  return listExerciseTemplates({ skillId });
+  return labTemplatesForSkill(skillId);
+}
+
+/** a written mission for the skill: the scenario lab, or the practice portfolio when that is the only exercise covering it */
+function writtenMissionHref(skillId: string): string | null {
+  if (scenarioTemplatesFor(skillId).length > 0) return hrefScenario(skillId);
+  if (isPortfolioSkill(skillId)) return HREF_PORTFOLIO;
+  return null;
 }
 
 /**
@@ -189,26 +226,34 @@ function missionForSkill(
       skillId: skill.id,
       moduleId: mod.id,
       title: `Lesson: ${name}`,
-      reason: `You have not started ${name} yet, so the lesson comes first.`,
+      reason: wealthLabHrefForSkill(skill.id)
+        ? `You have not started ${name} yet, so the lesson comes first; the Wealth lab shows the same ideas on real fund data.`
+        : `You have not started ${name} yet, so the lesson comes first.`,
       href: hrefLesson(mod.id, skill.id),
     };
   }
   const status = record.masteryStatus;
   const templates = scenarioTemplatesFor(skill.id);
+  const writtenHref = writtenMissionHref(skill.id);
+  const viaPortfolio = writtenHref === HREF_PORTFOLIO;
+  const where = viaPortfolio ? "your practice portfolio review" : "a scenario";
   const skillAttempts = attempts.filter((a) => a.skillIds.includes(skill.id));
   const highDistinct = highScoringDistinct(skill.id, skillAttempts);
 
-  if (templates.length > 0) {
+  if (writtenHref) {
+    const titlePrefix = viaPortfolio ? "Practice portfolio" : "Scenario";
     if (status === "learning") {
       return {
         kind: "scenario",
         skillId: skill.id,
         moduleId: mod.id,
-        title: `Scenario: ${name}`,
+        title: `${titlePrefix}: ${name}`,
         reason: skillAttempts.length === 0
-          ? `You have read about ${name}; a scenario with real evidence will show whether you can apply it.`
-          : `Your best scenario score on ${name} is under 60, so another attempt with fresh evidence is the next step.`,
-        href: hrefScenario(skill.id),
+          ? viaPortfolio
+            ? `You have read about ${name}; building a practice portfolio and explaining it with its real fund data will show whether you can apply it.`
+            : `You have read about ${name}; a scenario with real evidence will show whether you can apply it.`
+          : `Your best score on ${name} is under 60, so another attempt with ${viaPortfolio ? "a revised portfolio rationale" : "fresh evidence"} is the next step.`,
+        href: writtenHref,
       };
     }
     if (highDistinct === 0) {
@@ -216,19 +261,19 @@ function missionForSkill(
         kind: "scenario",
         skillId: skill.id,
         moduleId: mod.id,
-        title: `Scenario: ${name}`,
-        reason: `You are practising ${name}; mastery needs two scenario scores of 80 or more on different scenarios.`,
-        href: hrefScenario(skill.id),
+        title: `${titlePrefix}: ${name}`,
+        reason: `You are practising ${name}; mastery needs two scores of 80 or more on different ${viaPortfolio ? "portfolio reviews" : "scenarios"}.`,
+        href: writtenHref,
       };
     }
-    if (highDistinct === 1 && (templates.length > 1 || status !== "mastered")) {
+    if (highDistinct === 1 && (templates.length > 1 || viaPortfolio || status !== "mastered")) {
       return {
         kind: "scenario",
         skillId: skill.id,
         moduleId: mod.id,
-        title: `Scenario: ${name} (different evidence)`,
-        reason: `You scored 80 or more on one ${name} scenario; a second score of 80 on a different scenario is needed before a retention check.`,
-        href: hrefScenario(skill.id),
+        title: `${titlePrefix}: ${name} (${viaPortfolio ? "another review" : "different evidence"})`,
+        reason: `You scored 80 or more on one ${name} ${viaPortfolio ? "portfolio review" : "scenario"}; a second score of 80 on ${where === "a scenario" ? "a different scenario" : "another review"} is needed before a retention check.`,
+        href: writtenHref,
       };
     }
   }
@@ -248,7 +293,7 @@ function missionForSkill(
     }
   }
 
-  if (templates.length === 0 && status === "learning") {
+  if (!writtenHref && status === "learning") {
     const correct = kcResults.filter((k) => k.skillId === skill.id && k.correct && !k.reviewId).length;
     if (correct < 2) {
       return {
@@ -304,15 +349,17 @@ export function selectNextMission(input: SelectNextMissionInput): NextMission {
     const mod = skill ? moduleOf(skill) : undefined;
     const record = masteryById.get(m.skillId);
     if (!skill || !mod || record?.masteryStatus === "mastered") continue;
-    if (scenarioTemplatesFor(skill.id).length === 0) continue;
+    const href = writtenMissionHref(skill.id);
+    if (!href) continue;
     const label = getMisconception(m.misconceptionId)?.label ?? m.misconceptionId;
+    const viaPortfolio = href === HREF_PORTFOLIO;
     return {
       kind: "scenario",
       skillId: skill.id,
       moduleId: mod.id,
-      title: `Scenario: ${skill.name}`,
-      reason: `The pattern "${label}" has shown up ${m.count} times in your work; this scenario on ${skill.name} targets it directly.`,
-      href: hrefScenario(skill.id),
+      title: `${viaPortfolio ? "Practice portfolio" : "Scenario"}: ${skill.name}`,
+      reason: `The pattern "${label}" has shown up ${m.count} times in your work; this ${viaPortfolio ? "portfolio review" : "scenario"} on ${skill.name} targets it directly.`,
+      href,
     };
   }
 

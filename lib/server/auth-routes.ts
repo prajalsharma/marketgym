@@ -2,14 +2,21 @@
  * Shared logic for /api/auth/* route handlers. Local mode: no accounts, the
  * single implicit learner is sent to onboarding. Supabase mode: email +
  * password via Supabase Auth with cookie sessions (set by @supabase/ssr).
+ * Privy mode: the client signs in with Privy and posts the access token to
+ * /api/auth/privy; email/password sign-up and log-in are refused.
  */
+import { displayNameFromClaims, verifyPrivyToken, type VerifyPrivyOptions } from "@/lib/auth/privy";
 import { isLocalMode } from "@/lib/auth/session";
+import { clearedSessionCookie, sessionCookie, signSessionToken } from "@/lib/auth/session-token";
+import { getEnv } from "@/lib/config/env";
+import { getPostgresRepositoryFromEnv } from "@/lib/db";
 import { ApiError, ok, readJson } from "./api";
+import { defaultProfile } from "./learner";
 import { enforceRateLimit } from "./rate-limit";
-import { authCredentialsSchema } from "./validation";
+import { authCredentialsSchema, privyLoginSchema } from "./validation";
 
 export interface AuthResult {
-  mode: "local" | "supabase";
+  mode: "local" | "supabase" | "privy";
   redirectTo: string;
   needsEmailConfirmation?: boolean;
   userId?: string;
@@ -44,8 +51,20 @@ function respond(req: Request, result: AuthResult, isForm: boolean): Response {
   return ok(result);
 }
 
+const PRIVY_ONLY = "This server signs in with Privy. Use the Privy sign-in on the log-in page.";
+
+// read from env directly (not lib/auth/session) so tests that mock the session module keep working
+function isPrivyMode(): boolean {
+  return getEnv().authMode === "privy";
+}
+
+function cookieAttrs(): { secure: boolean } {
+  return { secure: getEnv().NODE_ENV === "production" };
+}
+
 export async function handleSignup(req: Request): Promise<Response> {
   enforceRateLimit(req, "auth");
+  if (isPrivyMode()) throw new ApiError("validation_error", PRIVY_ONLY);
   if (isLocalMode()) {
     const isForm = (req.headers.get("content-type") ?? "").includes("form");
     return respond(req, { mode: "local", redirectTo: ONBOARDING }, isForm);
@@ -77,6 +96,7 @@ export async function handleSignup(req: Request): Promise<Response> {
 
 export async function handleLogin(req: Request): Promise<Response> {
   enforceRateLimit(req, "auth");
+  if (isPrivyMode()) throw new ApiError("validation_error", PRIVY_ONLY);
   if (isLocalMode()) {
     const isForm = (req.headers.get("content-type") ?? "").includes("form");
     return respond(req, { mode: "local", redirectTo: ONBOARDING }, isForm);
@@ -94,6 +114,10 @@ export async function handleLogin(req: Request): Promise<Response> {
 
 export async function handleLogout(req: Request): Promise<Response> {
   const isForm = (req.headers.get("content-type") ?? "").includes("form");
+  if (isPrivyMode()) {
+    const res = respond(req, { mode: "privy", redirectTo: "/" }, isForm);
+    return withCookie(res, clearedSessionCookie(cookieAttrs()));
+  }
   if (isLocalMode()) {
     return respond(req, { mode: "local", redirectTo: "/" }, isForm);
   }
@@ -102,6 +126,42 @@ export async function handleLogout(req: Request): Promise<Response> {
   const { error } = await supabase.auth.signOut();
   if (error) console.warn(`[auth] signOut: ${error.name}`);
   return respond(req, { mode: "supabase", redirectTo: "/" }, isForm);
+}
+
+/** Response.redirect() has immutable headers; rebuild with the Set-Cookie added. */
+function withCookie(res: Response, cookie: string): Response {
+  const headers = new Headers(res.headers);
+  headers.append("set-cookie", cookie);
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
+
+export interface PrivyLoginResult {
+  userId: string;
+  isNew: boolean;
+}
+
+/**
+ * POST /api/auth/privy { accessToken }: verify the Privy token, find-or-create
+ * the MarketGym user by Privy DID (no wallet addresses, no email stored),
+ * create the profile for new users, and set the httpOnly `mg_session` cookie.
+ */
+export async function handlePrivyLogin(req: Request, opts: VerifyPrivyOptions = {}): Promise<Response> {
+  enforceRateLimit(req, "auth");
+  if (!isPrivyMode()) throw new ApiError("validation_error", "Privy sign-in is not enabled on this server.");
+  const { accessToken } = privyLoginSchema.parse(await readJson(req));
+  const { did, claims } = await verifyPrivyToken(accessToken, opts);
+
+  const repo = await getPostgresRepositoryFromEnv();
+  const displayName = displayNameFromClaims(claims);
+  const { user, isNew } = await repo.upsertPrivyUser(did, displayName);
+  // same defaults as the Supabase on-signup trigger; also heals a missing profile
+  if (isNew || !(await repo.getProfile(user.id))) {
+    await repo.upsertProfile({ ...defaultProfile({ id: user.id, email: null }), displayName: user.displayName ?? displayName });
+  }
+
+  const env = getEnv();
+  const token = await signSessionToken(user.id, env.SESSION_SECRET ?? "");
+  return withCookie(ok<PrivyLoginResult>({ userId: user.id, isNew }), sessionCookie(token, cookieAttrs()));
 }
 
 function friendlyAuthMessage(upstream: string, fallback: string): string {

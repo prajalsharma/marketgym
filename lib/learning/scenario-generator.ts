@@ -47,6 +47,12 @@ function freshness(pack: EvidencePack): string {
   for (const f of pack.etfFlows) add(f.provenance.kind, f.provenance.fetchedAt);
   for (const i of pack.indexes) add(i.provenance.kind, i.provenance.fetchedAt);
   for (const b of pack.orderBooks) add(b.provenance.kind, b.provenance.fetchedAt);
+  for (const f of pack.wealthFunds ?? []) add(f.provenance.kind, f.provenance.fetchedAt);
+  for (const q of pack.wealthQuotes ?? []) add(q.provenance.kind, q.provenance.fetchedAt);
+  for (const s of pack.wealthPrices ?? []) add(s.provenance.kind, s.provenance.fetchedAt);
+  for (const d of pack.dcaSimulations ?? []) add(d.provenance.kind, d.provenance.fetchedAt);
+  if (pack.rewardIncentives) add(pack.rewardIncentives.provenance.kind, pack.rewardIncentives.provenance.fetchedAt);
+  if (pack.rewardFeed) add(pack.rewardFeed.provenance.kind, pack.rewardFeed.provenance.fetchedAt);
   if (fetchedAts.length === 0) return "No evidence is attached.";
   const parts: string[] = [];
   const label: Record<DataSourceKind, string> = { live: "live", cached: "cached", demo: "demo (fixture, not real-time)" };
@@ -66,6 +72,18 @@ export function describeEvidenceSummary(pack: EvidencePack): string {
   if (pack.etfFlows.length > 0) items.push(`${plural(pack.etfFlows.length, "ETF flow series", "ETF flow series")} (${pack.etfFlows.map((f) => f.asset).join(", ")})`);
   if (pack.indexes.length > 0) items.push(`${plural(pack.indexes.length, "index snapshot")} (${pack.indexes.map((i) => i.name).join(", ")})`);
   if (pack.orderBooks.length > 0) items.push(`${plural(pack.orderBooks.length, "order book")} (${pack.orderBooks.map((b) => b.displayName).join(", ")})`);
+  const funds = pack.wealthFunds ?? [];
+  const quotes = pack.wealthQuotes ?? [];
+  if (funds.length > 0 || quotes.length > 0) {
+    const ids = [...new Set([...funds.map((f) => f.fundId), ...quotes.map((q) => q.fundId)])];
+    items.push(`${plural(ids.length, "fund")} on the wealth board (${ids.join(", ")})`);
+  }
+  const prices = pack.wealthPrices ?? [];
+  if (prices.length > 0) items.push(`${plural(prices.length, "fund price history", "fund price histories")} (${prices.map((p) => `${p.fundId} ${p.range}`).join(", ")})`);
+  const dca = pack.dcaSimulations ?? [];
+  if (dca.length > 0) items.push(`${plural(dca.length, "DCA simulation")} (${dca.map((d) => `${d.fundId} ${d.range}`).join(", ")})`);
+  if (pack.rewardIncentives) items.push("trading-incentive rules (points multipliers and reward boxes)");
+  if (pack.rewardFeed) items.push(`a public reward feed (${plural(pack.rewardFeed.items.length, "item")}, big wins only)`);
   return items.length > 0 ? `Attached evidence: ${items.join("; ")}.` : "Attached evidence: none.";
 }
 
@@ -104,10 +122,23 @@ export function attemptsPerTemplate(attempts: ScenarioAttempt[], templates: Exer
  * misconceptions intersect the learner's recurring misconceptions; then lower
  * difficulty. If every template was attempted, the least-attempted one wins.
  */
+/**
+ * Templates that need learner-owned input rather than a generic evidence pack.
+ * "ex.wealth.portfolio-review" is built by lib/learning/portfolio.ts
+ * (portfolioScenario) from the learner's practice portfolio, never by the
+ * scenario lab.
+ */
+export const LEARNER_INPUT_TEMPLATE_IDS: ReadonlySet<string> = new Set(["ex.wealth.portfolio-review"]);
+
+/** templates the scenario lab can build from an evidence pack alone */
+export function labTemplatesForSkill(skillId: string, kind?: ExerciseTemplate["kind"]): ExerciseTemplate[] {
+  return listExerciseTemplates(kind ? { skillId, kind } : { skillId }).filter((t) => !LEARNER_INPUT_TEMPLATE_IDS.has(t.id));
+}
+
 export function pickTemplateForSkill(skillId: string, attempts: ScenarioAttempt[], memory: LearningMemory): ExerciseTemplate {
-  let templates = listExerciseTemplates({ skillId, kind: "scenario" });
-  if (templates.length === 0) templates = listExerciseTemplates({ skillId });
-  if (templates.length === 0) throw new Error(`no exercise template for skill ${skillId}`);
+  let templates = labTemplatesForSkill(skillId, "scenario");
+  if (templates.length === 0) templates = labTemplatesForSkill(skillId);
+  if (templates.length === 0) throw new Error(`no exercise template for skill ${skillId}${listExerciseTemplates({ skillId }).length > 0 ? " (it is practised in the practice portfolio)" : ""}`);
   const counts = attemptsPerTemplate(attempts, templates);
   const recurring = new Set(memory.recurringMisconceptions.map((m) => m.misconceptionId));
   const overlap = (t: ExerciseTemplate) => t.rubric.commonMisconceptionIds.filter((id) => recurring.has(id)).length;

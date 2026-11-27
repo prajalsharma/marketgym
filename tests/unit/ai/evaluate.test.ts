@@ -68,7 +68,7 @@ describe("evaluateAttempt — with model", () => {
     const model = fakeModel([goodLlm]);
     const e = await evaluateAttempt({ scenario, answer: CONFIDENT_UNSUPPORTED, hintsUsed: 0, memory, model });
     expect(e.evaluatorMode).toBe("llm");
-    expect(e.promptVersion).toBe("evaluate-v1");
+    expect(e.promptVersion).toBe("evaluate-v2");
     expect(e.rubricScores.evidence).toBeLessThanOrEqual(8 + 15);
     expect(e.rubricScores.factual).toBeLessThanOrEqual(10 + 15);
     expect(e.totalScore).toBeLessThan(75);

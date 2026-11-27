@@ -20,6 +20,7 @@ import type {
   DiagnosticResult,
   Evaluation,
   MasteryRecord,
+  PaperPortfolio,
   Profile,
   Review,
   Scenario,
@@ -107,13 +108,24 @@ const coachRow = z.object({ id: z.string(), user_id: z.string(), session: z.cust
 const activityRow = z.object({
   id: z.string(),
   user_id: z.string(),
-  kind: z.enum(["diagnostic", "lesson", "knowledge-check", "scenario", "orderbook", "review", "coach"]),
+  kind: z.enum(["diagnostic", "lesson", "knowledge-check", "scenario", "orderbook", "review", "coach", "portfolio"]),
   skill_ids: z.array(z.string()),
   summary: z.string(),
   score: z.number().nullable(),
   ref_id: z.string().nullable(),
   created_at: iso,
 });
+
+const portfolioRow = z.object({
+  id: z.string(),
+  user_id: z.string(),
+  portfolio: z.custom<PaperPortfolio>((v) => typeof v === "object" && v !== null),
+});
+
+/** The stored JSON is authoritative for content; id/userId always come from the row columns. */
+function toPortfolio(r: z.infer<typeof portfolioRow>): PaperPortfolio {
+  return { ...r.portfolio, id: r.id, userId: r.user_id };
+}
 
 // ---------- mappers ----------
 
@@ -473,6 +485,49 @@ export class SupabaseRepository implements Repository {
   async listActivity(userId: string, limit: number): Promise<ActivityEvent[]> {
     const res = await this.user.from("activity_events").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(limit);
     return unwrap("listActivity", res, z.array(activityRow)).map(toActivity);
+  }
+
+  // ----- practice portfolios (service-role writes; user-scoped reads) -----
+
+  async savePortfolio(p: PaperPortfolio): Promise<PaperPortfolio> {
+    if (!uuidLike.test(p.id)) throw new DbError("savePortfolio", "portfolio id must be a uuid");
+    const service = this.service();
+    // the service role bypasses RLS, so refuse to overwrite a row owned by someone else
+    const existing = await service.from("paper_portfolios").select("id, user_id").eq("id", p.id).maybeSingle();
+    const owner = unwrap("savePortfolio.owner", existing, z.object({ id: z.string(), user_id: z.string() }).nullable());
+    if (owner && owner.user_id !== p.userId) throw new DbError("savePortfolio", "portfolio belongs to another user");
+    const res = await service
+      .from("paper_portfolios")
+      .upsert(
+        {
+          id: p.id,
+          user_id: p.userId,
+          name: p.name,
+          portfolio: p,
+          created_at: p.createdAt,
+          updated_at: p.updatedAt,
+        },
+        { onConflict: "id" },
+      )
+      .select("id, user_id, portfolio")
+      .single();
+    return toPortfolio(unwrap("savePortfolio", res, portfolioRow));
+  }
+
+  async getPortfolio(userId: string, id: string): Promise<PaperPortfolio | null> {
+    if (!uuidLike.test(id)) return null;
+    const res = await this.user.from("paper_portfolios").select("id, user_id, portfolio").eq("user_id", userId).eq("id", id).maybeSingle();
+    const row = unwrap("getPortfolio", res, portfolioRow.nullable());
+    return row ? toPortfolio(row) : null;
+  }
+
+  async listPortfolios(userId: string): Promise<PaperPortfolio[]> {
+    const res = await this.user
+      .from("paper_portfolios")
+      .select("id, user_id, portfolio")
+      .eq("user_id", userId)
+      .order("updated_at", { ascending: false });
+    return unwrap("listPortfolios", res, z.array(portfolioRow)).map(toPortfolio);
   }
 
   // ----- knowledge checks -----

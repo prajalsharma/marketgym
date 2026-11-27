@@ -1,5 +1,6 @@
 import type { Module } from "@/lib/types/curriculum";
 import { makeRubric } from "../rubric";
+import { tradingHoursObjective, tradingHoursConcept, tradingHoursCheck, tradingHoursExercise } from "./wave2-additions";
 
 export const marketsModule: Module = {
   id: "markets",
@@ -13,6 +14,7 @@ export const marketsModule: Module = {
     "Compute market capitalisation from price and circulating supply and explain why it is not money invested.",
     "Separate liquidity (the cost of trading now) from volume (what traded in the past) and from volatility (how much price moves).",
     "Describe how crypto prices arise across many venues and why two quotes for the same asset can differ.",
+    tradingHoursObjective,
   ],
   prerequisiteModuleIds: [],
   skillIds: [
@@ -22,6 +24,7 @@ export const marketsModule: Module = {
     "markets.liquidity",
     "markets.volatility",
     "markets.structure",
+    "markets.trading-hours",
   ],
   concepts: [
     {
@@ -95,6 +98,7 @@ There are also **spot** markets, where the asset itself changes hands, and **der
       example:
         "Suppose one provider quotes BTC at 60,010 and an on-chain order book shows a last trade at 59,985. Both can be correct: the first is a blended figure across venues as of one timestamp; the second is a single venue's last trade a few seconds earlier. The right description is 'quotes differ by about 0.04% across sources', not 'one of them is wrong'.",
     },
+    tradingHoursConcept,
   ],
   knowledgeChecks: [
     {
@@ -252,6 +256,7 @@ There are also **spot** markets, where the asset itself changes hands, and **der
         },
       ],
     },
+    tradingHoursCheck,
   ],
   exercises: [
     {
@@ -467,6 +472,7 @@ There are also **spot** markets, where the asset itself changes hands, and **der
         "A full answer computes the gap, lists venue, quote asset and timestamp as reasons, and says that a gap much wider than the book's own spread or a timestamp hours old would make you suspect a stale feed.",
       ],
     },
+    tradingHoursExercise,
   ],
   rubricNotes:
     "This module rewards plain description. Full marks on 'factual' need the right numbers and the right definitions; full marks on 'reasoning' need a visible gap between what was seen and what is inferred. Penalise any sentence that reads a price as a value, volume as a side, or a 24-hour change as a trend. Do not penalise a learner for declining to interpret.",

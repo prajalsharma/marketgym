@@ -11,6 +11,9 @@ const EXPECTED_SKILL_IDS = [
   "indexes.constituents", "indexes.weighting", "indexes.concentration", "indexes.diversification", "indexes.performance",
   "orderbook.bid-ask", "orderbook.spread", "orderbook.depth", "orderbook.liquidity", "orderbook.imbalance", "orderbook.tick-lot", "orderbook.price-time-priority",
   "reasoning.thesis", "reasoning.evidence-selection", "reasoning.observation-vs-interpretation", "reasoning.missing-info", "reasoning.uncertainty", "reasoning.invalidation",
+  // wave 2 (docs/CONTRACTS.md "Wave 2: SoDEX Wealth")
+  "markets.trading-hours", "orderbook.spot-vs-perps", "indexes.index-nav",
+  "wealth.fund-types", "wealth.nav-vs-price", "wealth.fees", "wealth.yield-apy", "wealth.dca", "wealth.diversification", "wealth.incentives",
 ];
 
 const EXPECTED_MISCONCEPTION_IDS = [
@@ -22,7 +25,13 @@ const EXPECTED_MISCONCEPTION_IDS = [
   "index-return-is-every-asset", "depth-is-static", "imbalance-predicts-price",
   "bigger-book-always-more-liquid", "tick-size-is-min-order", "earlier-order-loses-to-bigger",
   "observation-is-interpretation", "confidence-is-evidence", "thesis-without-invalidation",
+  // wave 2
+  "past-return-predicts", "apy-is-guaranteed", "nav-equals-price", "dca-always-wins", "incentive-volume-is-demand",
+  "feed-shows-typical-reward", "more-funds-is-diversified", "fees-dont-matter", "perps-price-is-spot-price", "stale-price-is-current",
 ];
+
+/** wave 2 misconceptions that must block mastery */
+const EXPECTED_CRITICAL_IDS = ["past-return-predicts", "apy-is-guaranteed", "incentive-volume-is-demand"];
 
 const MODULE_PREREQS: Record<string, string[]> = {
   markets: [],
@@ -31,12 +40,25 @@ const MODULE_PREREQS: Record<string, string[]> = {
   indexes: ["markets"],
   orderbook: ["markets"],
   reasoning: ["news", "etf"],
+  wealth: ["etf", "indexes"],
 };
 
 const EVIDENCE_TOKENS = new Set([
   "snapshot:BTC", "snapshot:ETH", "news:market", "news:etf", "news:macro",
   "etf:BTC", "etf:ETH", "index:all", "orderbook:vBTC_vUSDC", "orderbook:vETH_vUSDC",
+  "orderbook:vANT_vUSDC", "orderbook:perps:ANT-USD", "wealth:board", "rewards:incentives", "rewards:feed",
 ]);
+
+/** parameterised wave 2 tokens: wealth:fund:<id>, wealth:price:<id>:<range>, wealth:dca:<id>:<range> */
+const EVIDENCE_TOKEN_PATTERNS: RegExp[] = [
+  /^wealth:fund:[A-Za-z0-9_-]+$/,
+  /^wealth:price:[A-Za-z0-9_-]+:(1W|1M|3M|1Y)$/,
+  /^wealth:dca:[A-Za-z0-9_-]+:(3M|6M|1Y)$/,
+];
+
+export function isKnownEvidenceToken(token: string): boolean {
+  return EVIDENCE_TOKENS.has(token) || EVIDENCE_TOKEN_PATTERNS.some((re) => re.test(token));
+}
 
 export function validateCurriculum(): string[] {
   const errors: string[] = [];
@@ -80,7 +102,7 @@ export function validateCurriculum(): string[] {
   if (path.moduleIds.length !== modules.length) errors.push("path.moduleIds length != modules length");
 
   // ---- modules ----
-  if (modules.length !== 6) errors.push(`expected 6 modules, got ${modules.length}`);
+  if (modules.length !== 7) errors.push(`expected 7 modules, got ${modules.length}`);
   const seenKc = new Set<string>();
   const seenEx = new Set<string>();
   const coveredSkills = new Set<string>();
@@ -92,10 +114,10 @@ export function validateCurriculum(): string[] {
     if (JSON.stringify([...m.prerequisiteModuleIds].sort()) !== JSON.stringify([...expectedPre].sort()))
       errors.push(`${tag}: prerequisites ${m.prerequisiteModuleIds.join(",")} != ${expectedPre.join(",")}`);
     for (const p of m.prerequisiteModuleIds) if (!moduleIds.has(p)) errors.push(`${tag}: unknown prerequisite module ${p}`);
-    if (m.learningObjectives.length < 3 || m.learningObjectives.length > 5) errors.push(`${tag}: ${m.learningObjectives.length} learning objectives (want 3-5)`);
-    if (m.concepts.length < 3 || m.concepts.length > 5) errors.push(`${tag}: ${m.concepts.length} concepts (want 3-5)`);
-    if (m.knowledgeChecks.length < 3 || m.knowledgeChecks.length > 5) errors.push(`${tag}: ${m.knowledgeChecks.length} knowledge checks (want 3-4)`);
-    if (m.exercises.length < 2 || m.exercises.length > 3) errors.push(`${tag}: ${m.exercises.length} exercises (want 2-3)`);
+    if (m.learningObjectives.length < 3 || m.learningObjectives.length > 6) errors.push(`${tag}: ${m.learningObjectives.length} learning objectives (want 3-6)`);
+    if (m.concepts.length < 3 || m.concepts.length > 7) errors.push(`${tag}: ${m.concepts.length} concepts (want 3-7)`);
+    if (m.knowledgeChecks.length < 3 || m.knowledgeChecks.length > 8) errors.push(`${tag}: ${m.knowledgeChecks.length} knowledge checks (want 3-8)`);
+    if (m.exercises.length < 2 || m.exercises.length > 6) errors.push(`${tag}: ${m.exercises.length} exercises (want 2-6)`);
     if (!m.rubricNotes || !m.recommendedNext || !m.summary) errors.push(`${tag}: empty rubricNotes/recommendedNext/summary`);
     for (const sid of m.skillIds) {
       if (!skillIds.has(sid)) errors.push(`${tag}: unknown skill ${sid}`);
@@ -135,7 +157,7 @@ export function validateCurriculum(): string[] {
         else if (!m.skillIds.includes(sid)) errors.push(`${ex.id}: skill ${sid} not in ${tag}`);
       }
       if (ex.evidenceRequirements.length === 0) errors.push(`${ex.id}: no evidence requirements`);
-      for (const token of ex.evidenceRequirements) if (!EVIDENCE_TOKENS.has(token)) errors.push(`${ex.id}: unknown evidence token ${token}`);
+      for (const token of ex.evidenceRequirements) if (!isKnownEvidenceToken(token)) errors.push(`${ex.id}: unknown evidence token ${token}`);
       if (ex.questions.length < 3) errors.push(`${ex.id}: only ${ex.questions.length} questions`);
       if (ex.hints.length !== 3 || ex.hints.some((h) => !h.trim())) errors.push(`${ex.id}: need exactly 3 non-empty hints`);
       const r = ex.rubric;
@@ -168,7 +190,13 @@ export function validateCurriculum(): string[] {
     if (!m.label || !m.description || !m.correction) errors.push(`misconception ${m.id}: empty text field`);
   }
   const critical = misconceptions.filter((m) => m.critical).length;
-  if (critical < 6 || critical > 10) errors.push(`${critical} critical misconceptions (want about 8)`);
+  if (critical < 6 || critical > 12) errors.push(`${critical} critical misconceptions (want 6-12)`);
+  for (const id of EXPECTED_CRITICAL_IDS) if (!misconceptions.find((m) => m.id === id)?.critical) errors.push(`misconception ${id} must be critical`);
+  // every wave 2 skill needs at least one knowledge check
+  const kcSkills = new Set(modules.flatMap((m) => m.knowledgeChecks.map((k) => k.skillId)));
+  for (const sid of EXPECTED_SKILL_IDS.slice(EXPECTED_SKILL_IDS.indexOf("markets.trading-hours"))) if (!kcSkills.has(sid)) errors.push(`skill ${sid} has no knowledge check`);
+  // the practice-portfolio review template is a contract with lib/learning/portfolio.ts
+  if (!modules.some((m) => m.exercises.some((e) => e.id === "ex.wealth.portfolio-review"))) errors.push("missing exercise template ex.wealth.portfolio-review");
 
   return errors;
 }

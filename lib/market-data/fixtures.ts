@@ -8,7 +8,11 @@
 import type { DataProvenance, EtfFlowSeries, IndexSnapshot, MarketSnapshot, NewsCategory, NewsEvidence, OrderBookSnapshot } from "@/lib/types";
 import sodexBookBtc from "./__fixtures__/sodex/mainnet-spot-orderbook-vBTC_vUSDC.json";
 import sodexBookEth from "./__fixtures__/sodex/mainnet-spot-orderbook-vETH_vUSDC.json";
+import sodexBookAnt from "./__fixtures__/sodex/mainnet-spot-orderbook-vANT_vUSDC.json";
+import sodexSymbolAnt from "./__fixtures__/sodex/mainnet-spot-symbol-vANT_vUSDC.json";
 import sodexSymbols from "./__fixtures__/sodex/mainnet-spot-symbols.json";
+import sodexPerpsBookAnt from "./__fixtures__/sodex/mainnet-perps-orderbook-ANT-USD.json";
+import sodexPerpsSymbols from "./__fixtures__/sodex/mainnet-perps-symbols.json";
 import sodexTickerBtc from "./__fixtures__/sodex/mainnet-spot-ticker-vBTC_vUSDC.json";
 import sosoEtfSummary from "./__fixtures__/sosovalue/etfs.summary-history.json";
 import sosoIndexConstituents from "./__fixtures__/sosovalue/indices.constituents.json";
@@ -18,7 +22,7 @@ import sosoMacro from "./__fixtures__/sosovalue/macro.events.json";
 import sosoNewsFeed from "./__fixtures__/sosovalue/news.feed.json";
 import sosoNewsPick from "./__fixtures__/sosovalue/news.pick.json";
 import { orderBook as orderBookSchema, spotSymbols as spotSymbolsSchema, spotTickers as spotTickersSchema } from "./sodex/schemas";
-import { toOrderBookSnapshot, toSymbolMeta, type SymbolMeta } from "./sodex/normalise";
+import { toOrderBookSnapshot, toPerpsSymbolMeta, toSymbolMeta, type SymbolMeta } from "./sodex/normalise";
 import { macroDayToNews, toEtfFlowSeries, toIndexSnapshot, toNewsEvidence } from "./sosovalue/normalise";
 import { etfSummaryHistory, indexConstituents, indexList, indexSnapshot, macroEvents, newsPage } from "./sosovalue/schemas";
 
@@ -34,15 +38,25 @@ const DEMO_NOTE = "Demo fixture, not real-time market data.";
 // ---------- SoDEX-derived ----------
 
 const symbolsParsed = spotSymbolsSchema.parse(sodexSymbols.data);
-const symbolMetas: SymbolMeta[] = symbolsParsed.map(toSymbolMeta);
+// the 2026-11-06 symbols capture predates vANT; its own 2026-11-27 capture fills the gap
+const antSymbol = spotSymbolsSchema.parse(sodexSymbolAnt.data);
+const spotMetas: SymbolMeta[] = [...symbolsParsed, ...antSymbol.filter((a) => !symbolsParsed.some((s) => s.name === a.name))].map(toSymbolMeta);
+const perpsMetas: SymbolMeta[] = spotSymbolsSchema.parse(sodexPerpsSymbols.data).map(toPerpsSymbolMeta);
+const symbolMetas: SymbolMeta[] = [...spotMetas, ...perpsMetas];
 
 export function demoSymbols(): SymbolMeta[] {
-  return symbolMetas.map((m) => ({ ...m }));
+  return spotMetas.map((m) => ({ ...m }));
+}
+
+export function demoPerpsSymbols(): SymbolMeta[] {
+  return perpsMetas.map((m) => ({ ...m }));
 }
 
 const bookFixtures: Record<string, { captured: string; source: string; data: unknown }> = {
   vBTC_vUSDC: { captured: sodexBookBtc._captured_at, source: sodexBookBtc._source, data: sodexBookBtc.data },
   vETH_vUSDC: { captured: sodexBookEth._captured_at, source: sodexBookEth._source, data: sodexBookEth.data },
+  vANT_vUSDC: { captured: sodexBookAnt._captured_at, source: sodexBookAnt._source, data: sodexBookAnt.data },
+  "perps:ANT-USD": { captured: sodexPerpsBookAnt._captured_at, source: sodexPerpsBookAnt._source, data: sodexPerpsBookAnt.data },
 };
 
 export function demoOrderBookMarkets(): string[] {

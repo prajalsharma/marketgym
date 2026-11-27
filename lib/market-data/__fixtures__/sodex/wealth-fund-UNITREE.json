@@ -1,0 +1,44 @@
+{
+  "_captured_at": "2026-11-27T10:01:56.168Z",
+  "_source": "https://mainnet-gw.sodex.dev/api/v1/wealth/funds/UNITREE",
+  "code": 0,
+  "timestamp": 1795773716069,
+  "data": {
+    "fundId": "UNITREE",
+    "name": "UNITREE FUND",
+    "fundType": "escrow_vault",
+    "fundStatus": "live",
+    "nav": "98.99865931410493813",
+    "aum": "202644.903112",
+    "asOf": "2026-11-27T09:32:23Z",
+    "share": {
+      "coin": "aUNITREE",
+      "address": "0x67531aef9ce1ad5af176d0940bb8dfb0e1c1ecbe",
+      "decimals": 18
+    },
+    "issuerName": "AsiaHardTech",
+    "inceptionDate": "2026-08-07",
+    "contracts": {
+      "vault": "0x67531aef9ce1ad5af176d0940bb8dfb0e1c1ecbe",
+      "market": "0x830db93620edf3c3b611ada257b910bf97c8da85",
+      "asset": "0xcb7f80dff2727c791fa491722c428e6657f7e2c6",
+      "subscription": "0x701ebb547442f43047e06d59470445480e2705c7"
+    },
+    "chainConfig": {
+      "assetDecimals": 6,
+      "minDeposit": "100",
+      "minRedeemShares": "0.001",
+      "mgmtFeeRate": "36500000000000000",
+      "perfFeeRate": "0",
+      "exchangeRate": "98998659314104938130",
+      "paused": false,
+      "asOfBlock": 17448458
+    },
+    "subscription": {
+      "subscribeDeadline": 1787099400,
+      "unsubscribeDeadline": 1786795200,
+      "totalSubscribed": "515474.53",
+      "minimumSubscribeAmount": "100"
+    }
+  }
+}

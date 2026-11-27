@@ -88,7 +88,17 @@ const STRUCTURE_TERMS = [
   "spread", "depth", "bid", "ask", "order book", "orderbook", "imbalance", "liquidity", "volume", "market cap",
   "inflow", "outflow", "net flow", "flows", "aum", "net assets", "constituent", "weight", "weighting",
   "concentration", "tick", "lot size", "best bid", "best ask", "mid price", "cumulative", "24h", "24-hour",
+  // wave 2: funds, yield, incentives, perps
+  "nav", "net asset value", "premium", "discount", "management fee", "performance fee", "fee drag", "apy", "roi",
+  "dca", "lump sum", "hhi", "effective holdings", "market hours", "market-hours", "pre-market", "closed", "stale",
+  "multiplier", "reward box", "maker", "taker", "survivorship", "perpetual", "perp", "funding",
 ];
+const BOOK_TERMS = ["spread", "depth", "bid", "ask", "order book", "orderbook", "imbalance", "tick", "lot size", "best bid", "best ask", "mid price", "cumulative"];
+const FLOW_TERMS = ["inflow", "outflow", "net flow", "flows", "aum", "net assets"];
+const INDEX_TERMS = ["constituent", "weight", "weighting", "concentration"];
+const WEALTH_TERMS = ["nav", "net asset value", "premium", "discount", "management fee", "performance fee", "fee drag", "apy", "roi", "dca", "lump sum", "hhi", "effective holdings", "market hours", "market-hours", "pre-market", "closed", "stale"];
+const REWARD_TERMS = ["multiplier", "reward box", "maker", "taker", "survivorship"];
+const PERPS_TERMS = ["perpetual", "perp", "funding"];
 
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
@@ -143,6 +153,7 @@ function packFacts(pack: EvidencePack): PackFacts {
     }
     addDate(i.asOf);
   }
+  addWealthFacts(pack, facts, addDate);
   for (const b of pack.orderBooks) {
     facts.assets.push({ asset: b.baseAsset.replace(/^v/, ""), name: b.displayName });
     if (b.bestBid !== null) facts.figures.push({ value: b.bestBid, label: `${b.displayName} best bid` });
@@ -160,7 +171,106 @@ function packFacts(pack: EvidencePack): PackFacts {
   return facts;
 }
 
-function findEvidenceReferences(answer: string, pack: EvidencePack): string[] {
+type AddDate = (iso: string | undefined) => void;
+
+/** fund, yield, DCA and rewards figures from the optional wave 2 pack fields */
+function addWealthFacts(pack: EvidencePack, facts: PackFacts, addDate: AddDate): void {
+  for (const f of pack.wealthFunds ?? []) {
+    facts.assets.push({ asset: f.fundId, name: f.name });
+    if (f.shareSymbol) facts.assets.push({ asset: f.shareSymbol, name: f.name });
+    if (f.nav !== null) facts.figures.push({ value: f.nav, label: `${f.fundId} NAV` });
+    if (f.aum !== null) facts.figures.push({ value: f.aum, label: `${f.fundId} AUM` });
+    if (f.managementFeePct !== null) facts.figures.push({ value: f.managementFeePct, label: `${f.fundId} management fee %` });
+    if (f.performanceFeePct !== null) facts.figures.push({ value: f.performanceFeePct, label: `${f.fundId} performance fee %` });
+    addDate(f.asOf);
+  }
+  for (const q of pack.wealthQuotes ?? []) {
+    facts.assets.push({ asset: q.fundId, name: q.symbol ?? q.fundId });
+    facts.figures.push({ value: q.price, label: `${q.fundId} price` });
+    const pairs: Array<[number | null, string]> = [
+      [q.prevClose, "prev close"], [q.changePct, "change %"], [q.roi24hPct, "24h ROI %"], [q.roi1MPct, "1M ROI %"],
+      [q.roi1YPct, "1Y ROI %"], [q.roi3YPct, "3Y ROI %"], [q.roiYtdPct, "YTD ROI %"], [q.dividendYieldPct, "dividend yield %"],
+      [q.apy7dPct, "7-day APY %"], [q.apy1MPct, "1-month APY %"], [q.dayVolume, "day volume"],
+    ];
+    for (const [v, label] of pairs) if (v !== null) facts.figures.push({ value: v, label: `${q.fundId} ${label}` });
+    addDate(q.asOf ?? undefined);
+  }
+  for (const series of pack.wealthPrices ?? []) {
+    const first = series.points[0];
+    const last = series.points[series.points.length - 1];
+    if (first) facts.figures.push({ value: first.close, label: `${series.fundId} ${series.range} first close` });
+    if (last) facts.figures.push({ value: last.close, label: `${series.fundId} ${series.range} last close` });
+    if (first && last && first.close !== 0) facts.figures.push({ value: ((last.close - first.close) / first.close) * 100, label: `${series.fundId} ${series.range} change %` });
+    if (series.points.length > 0) {
+      const closes = series.points.map((p) => p.close);
+      facts.figures.push({ value: Math.min(...closes), label: `${series.fundId} ${series.range} low` });
+      facts.figures.push({ value: Math.max(...closes), label: `${series.fundId} ${series.range} high` });
+    }
+    addDate(first?.ts);
+    addDate(last?.ts);
+  }
+  for (const d of pack.dcaSimulations ?? []) {
+    facts.assets.push({ asset: d.fundId, name: d.fundId });
+    if (d.totalReturnPct !== null) facts.figures.push({ value: d.totalReturnPct, label: `${d.fundId} DCA ${d.range} return %` });
+    const last = d.points[d.points.length - 1];
+    if (last) facts.figures.push({ value: last.returnPct, label: `${d.fundId} DCA last point %` });
+    addDate(d.points[0]?.tradeDate);
+    addDate(last?.tradeDate);
+  }
+  const inc = pack.rewardIncentives;
+  if (inc) {
+    for (const m of inc.multipliers) {
+      facts.assets.push({ asset: m.symbol, name: m.symbol });
+      facts.figures.push({ value: m.coefficient, label: `${m.coefficient}x points multiplier` });
+    }
+    const pairs: Array<[number | null, string]> = [
+      [inc.volumePerBoxUsd, "volume per reward box"], [inc.takerWeightPct, "taker weight %"], [inc.makerWeightPct, "maker weight %"],
+      [inc.weekPoolPoints, "weekly points pool"],
+    ];
+    for (const [v, label] of pairs) if (v !== null) facts.figures.push({ value: v, label });
+    for (const b of inc.rewardBands) {
+      facts.figures.push({ value: b.minUsd, label: `${b.level} band min` });
+      facts.figures.push({ value: b.maxUsd, label: `${b.level} band max` });
+    }
+    addDate(inc.roundStart ?? undefined);
+    addDate(inc.roundEnd ?? undefined);
+  }
+  for (const item of (pack.rewardFeed?.items ?? []).slice(0, 20)) {
+    facts.figures.push({ value: item.rewardUsd, label: `reward feed ${item.level} ${item.rewardUsd} USD` });
+  }
+}
+
+/**
+ * Figures that lib/learning/portfolio.ts computed and wrote into a scenario
+ * description after the "Portfolio analysis:" marker (HHI, effective
+ * holdings, weights, shares, weighted fee/returns). Labelled patterns only,
+ * so timestamps and counts in the description never become "evidence".
+ */
+export function analysisFiguresFromDescription(description: string): Array<{ value: number; label: string }> {
+  const idx = description.indexOf("Portfolio analysis:");
+  if (idx < 0) return [];
+  const text = description.slice(idx);
+  const out: Array<{ value: number; label: string }> = [];
+  const grab = (re: RegExp, label: string) => {
+    const m = re.exec(text);
+    if (m) {
+      const n = Number(m[1]);
+      if (Number.isFinite(n)) out.push({ value: n, label });
+    }
+  };
+  grab(/HHI (-?[\d.]+)/, "portfolio HHI");
+  grab(/about (-?[\d.]+) effective holdings/, "portfolio effective holdings");
+  grab(/largest weight (-?[\d.]+)%/, "portfolio largest weight %");
+  grab(/Market-hours share (-?[\d.]+)%/, "portfolio market-hours share %");
+  grab(/management fee: (-?[\d.]+)%/, "portfolio weighted fee %");
+  grab(/return on the board: ([+-]?[\d.]+)%/, "portfolio weighted 1Y ROI %");
+  grab(/DCA simulation return: ([+-]?[\d.]+)%/, "portfolio weighted DCA return %");
+  const holdings = /holdings (.*?); strategy/.exec(text)?.[1] ?? "";
+  for (const m of holdings.matchAll(/([A-Za-z0-9_-]+) (\d+(?:\.\d+)?)%/g)) out.push({ value: Number(m[2]), label: `${m[1]} portfolio weight %` });
+  return out;
+}
+
+function findEvidenceReferences(answer: string, pack: EvidencePack, scenarioDescription = ""): string[] {
   const facts = packFacts(pack);
   const norm = normalise(answer);
   const tokens = contentTokens(answer);
@@ -174,8 +284,10 @@ function findEvidenceReferences(answer: string, pack: EvidencePack): string[] {
   }
 
   const numbers = extractNumbers(answer);
+  // computed portfolio-analysis figures first, so "100%" credits the market-hours share rather than an unrelated price near 100
+  const figures = [...analysisFiguresFromDescription(scenarioDescription), ...facts.figures];
   for (const n of numbers) {
-    const hit = facts.figures.find((f) => f.value !== 0 && approxEqual(n, f.value, 0.01));
+    const hit = figures.find((f) => f.value !== 0 && approxEqual(n, f.value, 0.01));
     if (hit) refs.push(`figure:${hit.label}`);
   }
 
@@ -199,14 +311,23 @@ function findEvidenceReferences(answer: string, pack: EvidencePack): string[] {
   }
 
   const hasBooks = pack.orderBooks.length > 0;
-  const hasFlows = pack.etfFlows.length > 0;
-  const hasIndexes = pack.indexes.length > 0;
+  const hasWealth = (pack.wealthFunds?.length ?? 0) + (pack.wealthQuotes?.length ?? 0) + (pack.wealthPrices?.length ?? 0) + (pack.dcaSimulations?.length ?? 0) > 0;
+  const hasFlows = pack.etfFlows.length > 0 || (pack.wealthFunds ?? []).some((f) => f.aum !== null);
+  const hasIndexes = pack.indexes.length > 0 || hasWealth;
+  const hasRewards = Boolean(pack.rewardIncentives || pack.rewardFeed);
+  const hasPerps = pack.orderBooks.some((b) => b.marketType === "perps" || b.market.startsWith("perps:")) || (pack.rewardIncentives?.multipliers.some((m) => m.marketType === "perps") ?? false);
   for (const term of STRUCTURE_TERMS) {
-    if (!norm.includes(term)) continue;
-    const bookTerm = ["spread", "depth", "bid", "ask", "order book", "orderbook", "imbalance", "tick", "lot size", "best bid", "best ask", "mid price", "cumulative"].includes(term);
-    const flowTerm = ["inflow", "outflow", "net flow", "flows", "aum", "net assets"].includes(term);
-    const indexTerm = ["constituent", "weight", "weighting", "concentration"].includes(term);
-    if ((bookTerm && hasBooks) || (flowTerm && hasFlows) || (indexTerm && hasIndexes) || (!bookTerm && !flowTerm && !indexTerm)) {
+    const wave2 = WEALTH_TERMS.includes(term) || REWARD_TERMS.includes(term) || PERPS_TERMS.includes(term);
+    // wave 2 terms are short ("nav", "roi", "perp"), so they need whole-word matches
+    if (wave2 ? !wordBoundaryRe(term).test(norm) : !norm.includes(term)) continue;
+    const bookTerm = BOOK_TERMS.includes(term);
+    const flowTerm = FLOW_TERMS.includes(term);
+    const indexTerm = INDEX_TERMS.includes(term);
+    const wealthTerm = WEALTH_TERMS.includes(term);
+    const rewardTerm = REWARD_TERMS.includes(term);
+    const perpsTerm = PERPS_TERMS.includes(term);
+    const generic = !bookTerm && !flowTerm && !indexTerm && !wealthTerm && !rewardTerm && !perpsTerm;
+    if ((bookTerm && hasBooks) || (flowTerm && hasFlows) || (indexTerm && hasIndexes) || (wealthTerm && hasWealth) || (rewardTerm && hasRewards) || (perpsTerm && hasPerps) || generic) {
       refs.push(`term:${term.trim()}`);
     }
   }
@@ -296,6 +417,12 @@ function isOffTopic(answer: string, scenario: Scenario): boolean {
         ...scenario.evidence.orderBooks.map((b) => `${b.displayName} order book spread depth bid ask`),
         ...scenario.evidence.etfFlows.map((f) => `${f.asset} etf flow inflow outflow`),
         ...scenario.evidence.indexes.map((i) => `${i.name} index constituent weight`),
+        ...(scenario.evidence.wealthFunds ?? []).map((f) => `${f.fundId} ${f.name} ${f.kindLabel} fund nav fee`),
+        ...(scenario.evidence.wealthQuotes ?? []).map((q) => `${q.fundId} ${q.symbol ?? ""} fund price roi apy yield`),
+        ...(scenario.evidence.dcaSimulations ?? []).map((d) => `${d.fundId} dca simulation return weekly`),
+        ...(scenario.evidence.rewardIncentives ? ["rewards points multiplier volume maker taker box incentive"] : []),
+        ...(scenario.evidence.rewardFeed ? ["reward feed win box"] : []),
+        "portfolio weight diversification concentration",
         "market price volume liquidity news evidence data",
       ].join(" "),
     ),
@@ -339,7 +466,7 @@ export function evaluateWithRules(input: RulesInput): RulesEvaluation {
   factual -= Math.min(10, contradictions.length * 5);
 
   // evidence
-  const evidenceReferences = offTopic ? [] : findEvidenceReferences(answer, scenario.evidence);
+  const evidenceReferences = offTopic ? [] : findEvidenceReferences(answer, scenario.evidence, scenario.description);
   const distinctKinds = uniq(evidenceReferences.map((r) => r.split(":")[0])).length;
   const refCount = evidenceReferences.length;
   let evidence = refCount === 0 ? 0 : refCount === 1 ? 8 : refCount === 2 ? 14 : refCount === 3 ? 19 : 23;

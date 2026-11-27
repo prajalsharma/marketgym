@@ -1,5 +1,6 @@
 import type { Module } from "@/lib/types/curriculum";
 import { makeRubric } from "../rubric";
+import { spotVsPerpsObjective, spotVsPerpsConcept, spotVsPerpsCheck, spotVsPerpsExercise } from "./wave2-additions";
 
 export const orderbookModule: Module = {
   id: "orderbook",
@@ -13,6 +14,7 @@ export const orderbookModule: Module = {
     "Read per-level and cumulative depth, and estimate the average price and the worst price a given order size would reach.",
     "Judge liquidity from spread and depth within a fixed distance of mid, and explain why total book size is not the right measure.",
     "Apply tick size, lot size, minimum quantity and minimum notional to a proposed order, and work out fill order under price-time priority.",
+    spotVsPerpsObjective,
   ],
   prerequisiteModuleIds: ["markets"],
   skillIds: [
@@ -23,6 +25,7 @@ export const orderbookModule: Module = {
     "orderbook.imbalance",
     "orderbook.tick-lot",
     "orderbook.price-time-priority",
+    "orderbook.spot-vs-perps",
   ],
   concepts: [
     {
@@ -102,6 +105,7 @@ Once orders are in the book, the venue matches them by **price-time priority**: 
       example:
         "Suppose tick size 1, lot size 0.00001, minimum quantity 0.00001 and minimum notional 5 USDC on BTC/USDC near 60,000. A buy at 60,000.5 is rejected (not a tick multiple). A buy of 0.00005 at 60,000 is a valid lot multiple but has notional 3 USDC, below the minimum, so it is rejected. At the best bid, order X (0.2, placed 10:00:01) and order Y (1.0, placed 10:00:03) rest. A market sell of 0.5 fills X in full (0.2) and then 0.3 of Y. X went first because it was earlier, not because of size.",
     },
+    spotVsPerpsConcept,
   ],
   knowledgeChecks: [
     {
@@ -295,6 +299,7 @@ Once orders are in the book, the venue matches them by **price-time priority**: 
         },
       ],
     },
+    spotVsPerpsCheck,
   ],
   exercises: [
     {
@@ -517,6 +522,7 @@ Once orders are in the book, the venue matches them by **price-time priority**: 
         "A full answer rejects (a) for tick, (b) for lot, (c) for notional (0.00005 × price < 5), places the new bid behind the resting quantity at the best bid, explains that a one-tick-better bid is first in a new queue but pays one tick more, and states that priority is price then time, never size.",
       ],
     },
+    spotVsPerpsExercise,
   ],
   rubricNotes:
     "These are written-reasoning exercises about a book; the interactive drills live in the Order Book Gym. Grade arithmetic strictly: spread, walks, averages and bid share should match the pack's levels. Reasoning marks hinge on two refusals: not reading the spread as the venue's fee, and not reading imbalance or 'walls' as a forecast. Every estimate must carry the snapshot caveat to earn full uncertainty marks.",

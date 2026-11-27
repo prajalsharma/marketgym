@@ -10,6 +10,7 @@ import type {
   CoachSession,
   DiagnosticResult,
   MasteryRecord,
+  PaperPortfolio,
   Profile,
   Review,
   Scenario,
@@ -28,6 +29,7 @@ interface LocalStore {
   coachSessions: CoachSession[];
   activity: ActivityEvent[];
   knowledgeCheckResults: KnowledgeCheckResult[];
+  portfolios: PaperPortfolio[];
 }
 
 function emptyStore(): LocalStore {
@@ -42,6 +44,7 @@ function emptyStore(): LocalStore {
     coachSessions: [],
     activity: [],
     knowledgeCheckResults: [],
+    portfolios: [],
   };
 }
 
@@ -304,6 +307,41 @@ export class LocalRepository implements Repository {
             .filter((a) => a.userId === userId)
             .sort(byNewest)
             .slice(0, Math.max(0, limit)),
+        ),
+      { write: false },
+    );
+  }
+
+  // ----- practice portfolios -----
+
+  savePortfolio(p: PaperPortfolio): Promise<PaperPortfolio> {
+    return this.run(
+      (s) => {
+        const i = s.portfolios.findIndex((x) => x.id === p.id);
+        if (i >= 0) {
+          // an id collision must never let one learner overwrite another's portfolio
+          if (s.portfolios[i]!.userId !== p.userId) throw new Error("[local-repository] savePortfolio: portfolio belongs to another user");
+          s.portfolios[i] = clone(p);
+        } else {
+          s.portfolios.push(clone(p));
+        }
+        return clone(p);
+      },
+      { write: true },
+    );
+  }
+
+  getPortfolio(userId: string, id: string): Promise<PaperPortfolio | null> {
+    return this.run((s) => clone(s.portfolios.find((p) => p.id === id && p.userId === userId) ?? null), { write: false });
+  }
+
+  listPortfolios(userId: string): Promise<PaperPortfolio[]> {
+    return this.run(
+      (s) =>
+        clone(
+          s.portfolios
+            .filter((p) => p.userId === userId)
+            .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : a.updatedAt > b.updatedAt ? -1 : 0)),
         ),
       { write: false },
     );

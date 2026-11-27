@@ -1,19 +1,29 @@
 /**
  * Auth boundary (docs/CONTRACTS.md). All server code resolves the learner
- * through these two functions, in both Supabase and local mode.
+ * through these functions, whatever getEnv().authMode is:
+ *  - privy:    httpOnly `mg_session` cookie (HS256 JWT, SESSION_SECRET), sub = MarketGym user uuid
+ *  - supabase: Supabase Auth cookie session
+ *  - local:    the single implicit demo learner (refused in production unless ALLOW_LOCAL_MODE)
  */
 import { getEnv } from "@/lib/config/env";
 import { ApiError } from "@/lib/server/api";
 import { LOCAL_USER, type AuthUser } from "./local";
+import { SESSION_COOKIE, verifySessionToken } from "./session-token";
 
 export type { AuthUser } from "./local";
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
   const env = getEnv();
-  if (!env.supabaseEnabled) {
+  if (env.authMode === "privy") {
+    const { cookies } = await import("next/headers");
+    const store = await cookies();
+    const userId = await verifySessionToken(store.get(SESSION_COOKIE)?.value, env.SESSION_SECRET);
+    return userId ? { id: userId, email: null } : null;
+  }
+  if (env.authMode === "local") {
     // local mode = one shared learner with no login; never let it run silently in production
     if (env.NODE_ENV === "production" && !env.ALLOW_LOCAL_MODE) {
-      throw new ApiError("upstream_unavailable", "Accounts are not configured on this server. Set the Supabase variables, or ALLOW_LOCAL_MODE=true for a single-user demo.");
+      throw new ApiError("upstream_unavailable", "Accounts are not configured on this server. Set the Privy or Supabase variables, or ALLOW_LOCAL_MODE=true for a single-user demo.");
     }
     return LOCAL_USER;
   }
@@ -32,5 +42,10 @@ export async function requireUser(): Promise<AuthUser> {
 
 /** True when running with the single implicit local learner. */
 export function isLocalMode(): boolean {
-  return !getEnv().supabaseEnabled;
+  return getEnv().authMode === "local";
+}
+
+/** True when Privy sign-in (with Postgres storage) is active. */
+export function isPrivyMode(): boolean {
+  return getEnv().authMode === "privy";
 }

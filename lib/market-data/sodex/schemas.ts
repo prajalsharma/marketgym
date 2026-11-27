@@ -1,6 +1,7 @@
 /**
- * Zod schemas for SoDEX public spot market data (docs/research/SODEX.md).
- * Only /markets/* GET payloads. Decimals arrive as JSON strings.
+ * Zod schemas for SoDEX public spot/perps market data (docs/research/SODEX.md).
+ * Only /markets/* GET payloads (perps symbols carry extra fields that are
+ * stripped). Decimals arrive as JSON strings. Wealth/rewards: ./wealth-schemas.ts.
  */
 import { z } from "zod";
 
@@ -9,6 +10,9 @@ export const envelope = z.object({
   timestamp: z.number().optional(),
   data: z.unknown().optional(),
   error: z.string().optional(),
+  // rewards endpoints use msg | message instead of timestamp/error
+  msg: z.string().optional(),
+  message: z.string().optional(),
 });
 export type Envelope = z.infer<typeof envelope>;
 

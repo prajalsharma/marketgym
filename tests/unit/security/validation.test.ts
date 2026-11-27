@@ -97,7 +97,10 @@ describe("Zod schemas reject malformed bodies", () => {
     expect(v.coachRespondSchema.safeParse({ sessionId: "s", message: "x".repeat(2001) }).success).toBe(false);
     expect(v.orderBookExerciseSubmitSchema.safeParse({ exerciseId: "e", market: "../../etc", answers: { a: 1 }, snapshotTimestamp: "t" }).success).toBe(false);
     expect(v.orderBookExerciseSubmitSchema.safeParse({ exerciseId: "e", market: "vBTC_vUSDC", answers: {}, snapshotTimestamp: "t" }).success).toBe(false);
-    expect(v.marketOrderBookQuerySchema.safeParse({ market: "vBTC_vUSDC", limit: "5000" }).success).toBe(false);
+    const { orderBookQuerySchema } = await import("@/lib/market-data/params");
+    expect(orderBookQuerySchema.safeParse({ market: "vBTC_vUSDC", limit: "5000" }).success).toBe(false);
+    expect(orderBookQuerySchema.safeParse({ market: "perps:ANT-USD" }).success).toBe(true);
+    expect(orderBookQuerySchema.safeParse({ market: "../../wealth/users/x" }).success).toBe(false);
     expect(v.marketSnapshotQuerySchema.safeParse({ assets: "BTC,ETH,SOL,ADA,DOT,LINK,AVAX" }).success).toBe(false);
     expect(v.marketSnapshotQuerySchema.safeParse({ assets: "btc, eth" }).data?.assets).toEqual(["BTC", "ETH"]);
   });

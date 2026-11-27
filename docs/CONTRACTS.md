@@ -218,7 +218,7 @@ New misconceptions (min): `past-return-predicts`, `apy-is-guaranteed`, `nav-equa
 GET  /api/market/wealth                         WealthBoardResponse           public, rate-limited
 GET  /api/market/wealth/[fundId]                WealthFundResponse            public
 GET  /api/market/wealth/[fundId]/prices?range=  WealthPriceHistoryResponse    public (range 1W|1M|3M|1Y)
-GET  /api/market/wealth/[fundId]/dca?range=     WealthDcaResponse             public (range 3M|6M|1Y)
+GET  /api/market/wealth/[fundId]/dca?range=     WealthDcaResponse             public (range 3M|6M|1Y; SoDEX serves only 1Y/3Y, so 3M/6M are computed by MarketGym from SoDEX 1Y daily closes with SoDEX's weekly method, and provenance.note says so)
 GET  /api/market/rewards                        RewardsResponse               public
 GET  /api/market/orderbook?market=perps:ANT-USD (existing route, now accepts perps ids)
 GET  /api/portfolio                             PortfolioResponse[]           learner

@@ -63,7 +63,7 @@ create table if not exists public.learning_sessions (
 );
 
 create table if not exists public.diagnostics (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key, -- app ids like "diag_<uuid>"
   user_id uuid not null references auth.users(id) on delete cascade,
   result jsonb not null, -- DiagnosticResult
   created_at timestamptz not null default now()
@@ -150,7 +150,7 @@ create table if not exists public.knowledge_check_results (
 );
 
 create table if not exists public.coach_sessions (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key, -- app ids like "coach_<uuid>"
   user_id uuid not null references auth.users(id) on delete cascade,
   skill_id text not null references public.skills(id),
   module_id text not null,

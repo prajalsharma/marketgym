@@ -1,5 +1,5 @@
 allowBuilds:
-  '@reown/appkit': set this to true or false
+  '@reown/appkit': false
   esbuild: true
   sharp: false
   unrs-resolver: false
